@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片转 PDF - 免费在线工具 | PDF 工具箱</title>
+    <meta name="description" content="免费在线将 JPG/PNG 图片合并为 PDF，支持拖拽排序。所有文件均在浏览器本地处理，保护隐私。">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.8em' font-size='100' fill='%236C63FF'>◈</text></svg>">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/common.js"></script>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <style>
+        #nav-img2pdf { background-color: var(--primary-soft); color: var(--primary); font-weight: bold; }
+        .img-preview { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; margin-right: 12px; border: 1px solid var(--border); background: var(--bg-surface);}
+        .file-item-content { display: flex; align-items: center; width: calc(100% - 30px); }
+        .file-item-content span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    </style>
+</head>
+<body>
+
+    <div class="trust-banner">🔒 纯本地处理：所有操作均在浏览器内完成，文件绝不上传服务器，保护您的隐私安全。</div>
+
+    <div class="app-body">
+        
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <a href="index.html" class="logo-area">
+                <div class="logo-icon">◈</div>
+                <div class="logo-title">PDF 工具箱</div>
+            </a>
+            <div class="divider"></div>
+            
+            <div class="nav-label hide-on-mobile">工具导航</div>
+            <a href="index.html" class="nav-btn" id="nav-home">首页</a>
+            
+            <div class="nav-label hide-on-mobile" style="margin-top: 12px;">核心处理</div>
+            <a href="merge.html" class="nav-btn" id="nav-merge">合并 PDF</a>
+            <a href="split.html" class="nav-btn" id="nav-split">拆分 / 提取</a>
+            <a href="edit-pages.html" class="nav-btn" id="nav-edit">旋转与删除</a>
+            
+            <div class="nav-label hide-on-mobile" style="margin-top: 12px;">格式转换</div>
+            <a href="pdf-to-img.html" class="nav-btn" id="nav-pdf2img">PDF 转图片</a>
+            <a href="img-to-pdf.html" class="nav-btn" id="nav-img2pdf">图片转 PDF</a>
+            
+            <div class="nav-label hide-on-mobile" style="margin-top: 12px;">安全与保护</div>
+            <a href="watermark.html" class="nav-btn" id="nav-watermark">PDF 加水印</a>
+
+            <div class="spacer"></div>
+            <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">切换深色</button>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <div class="page-view">
+                <div class="header">
+                    <h1>图片转 PDF</h1>
+                    <span class="badge">拖拽排序</span>
+                </div>
+                
+                <div class="card card-stretch">
+                    <div class="toolbar">
+                        <label for="addImgsInput" class="btn btn-primary">＋ 选择图片</label>
+                        <input type="file" id="addImgsInput" multiple accept="image/jpeg,image/png" onchange="handleImgsAdded(event)">
+                        <button class="btn btn-outline" onclick="clearImgList()">清空列表</button>
+                        <span style="flex-grow:1; text-align:right; color:var(--text-dim); font-size:12px;" id="imgCount">共 0 张图片</span>
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-dim); margin-bottom: 12px;">支持选择多张 JPG/PNG，生成后每张图片占一页。</div>
+                    
+                    <div class="file-list-wrapper" id="imgDropZone">
+                        <ul class="file-list" id="sortableImgList"></ul>
+                        <div class="empty-tip" id="imgEmptyTip">点击上方按钮选择 JPG/PNG 图片<span class="hide-on-mobile">，或直接拖拽到此处</span></div>
+                    </div>
+                </div>
+
+                <div class="card" style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <span style="color: var(--text-sub); font-size: 13px;" id="imgStatusText">请选择至少 1 张图片</span>
+                    <button class="btn btn-run" id="runImg2PdfBtn" onclick="runImgToPdf()">合并为 PDF</button>
+                </div>
+                
+                <div style="flex-grow: 1;"></div>
+                <div class="footer">
+                    <p>PDF 工具箱 © 2026 | <a href="javascript:alert('该工具纯前端本地处理，您的文件不会上传至任何服务器。')">隐私说明</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let imgsMap = new Map();
+        const sortableListEl = document.getElementById('sortableImgList');
+        new Sortable(sortableListEl, { animation: 150 });
+
+        function handleImgsAdded(event) { addImgsToList(event.target.files); event.target.value = ""; }
+        
+        async function addImgsToList(files) {
+            for (let file of files) {
+                if (file.type !== "image/jpeg" && file.type !== "image/png") continue;
+                const id = generateId();
+                imgsMap.set(id, file);
+                
+                const url = URL.createObjectURL(file);
+                const li = document.createElement('li');
+                li.className = 'file-item';
+                li.setAttribute('data-id', id);
+                li.innerHTML = `
+                    <div class="file-item-content">
+                        <img src="${url}" class="img-preview" onload="URL.revokeObjectURL(this.src)">
+                        <span>${file.name}</span>
+                    </div>
+                    <span class="remove-icon" title="删除" onclick="removeImg('${id}', this)">✖</span>
+                `;
+                sortableListEl.appendChild(li);
+            }
+            updateImgListStatus();
+        }
+
+        function removeImg(id, el) { imgsMap.delete(id); el.parentElement.remove(); updateImgListStatus(); }
+        function clearImgList() { imgsMap.clear(); sortableListEl.innerHTML = ''; updateImgListStatus(); }
+        
+        function updateImgListStatus() {
+            const count = imgsMap.size;
+            document.getElementById('imgCount').innerText = `共 ${count} 张图片`;
+            document.getElementById('imgEmptyTip').style.display = count > 0 ? 'none' : 'block';
+            
+            const statusText = document.getElementById('imgStatusText');
+            if (count < 1) {
+                statusText.innerText = "请选择至少 1 张图片";
+                statusText.style.color = "var(--text-sub)";
+            } else {
+                statusText.innerText = `已准备 ${count} 张图片，可以开始生成`;
+                statusText.style.color = "var(--text-main)";
+            }
+        }
+
+        const dropZone = document.getElementById('imgDropZone');
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
+        dropZone.addEventListener('drop', (e) => { e.preventDefault(); addImgsToList(e.dataTransfer.files); });
+
+        async function runImgToPdf() {
+            const orderedItems = document.querySelectorAll('#sortableImgList .file-item');
+            if (orderedItems.length < 1) { alert("请选择至少 1 张图片！"); return; }
+
+            const btn = document.getElementById('runImg2PdfBtn');
+            const status = document.getElementById('imgStatusText');
+            btn.disabled = true; btn.innerText = "处理中...";
+            status.innerText = "正在生成 PDF，请稍候...";
+
+            try {
+                const { PDFDocument } = PDFLib;
+                const pdfDoc = await PDFDocument.create();
+
+                for (let i = 0; i < orderedItems.length; i++) {
+                    const item = orderedItems[i];
+                    status.innerText = `正在处理第 ${i + 1} / ${orderedItems.length} 张图片...`;
+                    const file = imgsMap.get(item.getAttribute('data-id'));
+                    const arrayBuffer = await file.arrayBuffer();
+                    
+                    let image;
+                    if (file.type === 'image/jpeg') {
+                        image = await pdfDoc.embedJpg(arrayBuffer);
+                    } else if (file.type === 'image/png') {
+                        image = await pdfDoc.embedPng(arrayBuffer);
+                    } else {
+                        continue;
+                    }
+
+                    const dims = image.scale(1);
+                    const page = pdfDoc.addPage([dims.width, dims.height]);
+                    page.drawImage(image, {
+                        x: 0, y: 0, width: dims.width, height: dims.height,
+                    });
+                }
+
+                status.innerText = "正在保存最终文件...";
+                const pdfBytes = await pdfDoc.save();
+                triggerDownload(pdfBytes, `图片合成.pdf`);
+                
+                status.innerText = "✅ 生成完成，已下载"; status.style.color = "var(--success)";
+            } catch (e) {
+                console.error(e); status.innerText = "❌ 生成失败，图片可能损坏。"; status.style.color = "var(--danger)";
+            } finally {
+                btn.disabled = false; btn.innerText = "合并为 PDF";
+                setTimeout(() => { updateImgListStatus(); }, 4000);
+            }
+        }
+    </script>
+</body>
+</html>

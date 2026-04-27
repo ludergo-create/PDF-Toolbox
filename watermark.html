@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF 加水印 - 免费在线工具 | PDF 工具箱</title>
+    <meta name="description" content="实时预览水印效果，双击单页可独立定制。本地浏览器处理，绝对安全。">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.8em' font-size='100' fill='%236C63FF'>◈</text></svg>">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/common.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <style>
+        #nav-watermark { background-color: var(--primary-soft); color: var(--primary); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="trust-banner">🔒 纯本地处理：所有操作均在浏览器内完成，文件绝不上传服务器，保护您的隐私安全。</div>
+
+    <div class="app-body">
+        
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <a href="index.html" class="logo-area">
+                <div class="logo-icon">◈</div>
+                <div class="logo-title">PDF 工具箱</div>
+            </a>
+            <div class="divider"></div>
+            
+            <div class="nav-label hide-on-mobile">工具导航</div>
+            <a href="index.html" class="nav-btn" id="nav-home">首页</a>
+            
+            <div class="nav-label hide-on-mobile" style="margin-top: 12px;">核心处理</div>
+            <a href="merge.html" class="nav-btn" id="nav-merge">合并 PDF</a>
+            <a href="split.html" class="nav-btn" id="nav-split">拆分 / 提取</a>
+            <a href="edit-pages.html" class="nav-btn" id="nav-edit">旋转与删除</a>
+            
+            <div class="nav-label hide-on-mobile" style="margin-top: 12px;">格式转换</div>
+            <a href="pdf-to-img.html" class="nav-btn" id="nav-pdf2img">PDF 转图片</a>
+            <a href="img-to-pdf.html" class="nav-btn" id="nav-img2pdf">图片转 PDF</a>
+            
+            <div class="nav-label hide-on-mobile" style="margin-top: 12px;">安全与保护</div>
+            <a href="watermark.html" class="nav-btn" id="nav-watermark">PDF 加水印</a>
+
+            <div class="spacer"></div>
+            <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">切换深色</button>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            
+            <div class="page-view">
+                <div class="header">
+                    <h1>PDF 加水印</h1>
+                    <span class="badge">实时预览</span>
+                </div>
+                
+                <div class="card">
+                    <label for="wmFileInput" class="split-file-btn" id="wmDropZone">
+                        点击选择 PDF 文件<span class="hide-on-mobile">（或将文件拖到此处）</span>
+                    </label>
+                    <input type="file" id="wmFileInput" accept="application/pdf,.pdf" onchange="handleWmFileAdded(event)">
+                    
+                    <div id="fileInfoArea" class="file-loaded-card" style="display:none;">
+                        <div id="wmFileName" class="file-name">📄 filename.pdf</div>
+                        <div class="trash-btn" onclick="resetWmFile()" title="移除文件">
+                            <svg viewBox="0 0 24 24"><path d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-3.5l-1-1zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7z"/></svg>
+                        </div>
+                    </div>
+
+                    <div style="background-color: var(--bg-surface); border-radius: 12px; padding: 16px 20px;">
+                        <div style="font-size: 13px; color: var(--warning); margin-bottom: 12px; font-weight: bold;">⚠️ 提示：双击下方的任意单页，即可为该页独立定制专属水印！纯本地版本不支持中文注入，请使用【英文】或【拼音】。</div>
+                        
+                        <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end;">
+                            <div style="flex: 1; min-width: 200px;">
+                                <label style="font-weight: bold; font-size: 14px; display: block; margin-bottom: 8px;">全局水印文字</label>
+                                <input type="text" id="globalWmText" value="CONFIDENTIAL" oninput="updateAllOverlays()" style="width: 100%;">
+                            </div>
+                            <div style="width: 160px;">
+                                <label style="font-weight: bold; font-size: 14px; display: block; margin-bottom: 8px;">全局水印颜色</label>
+                                <select id="globalWmColor" onchange="updateAllOverlays()" style="width: 100%;">
+                                    <option value="gray">灰色 (推荐)</option>
+                                    <option value="red">红色</option>
+                                    <option value="black">黑色</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- PDF 网格容器 -->
+                    <div id="wmPagesGrid" class="pdf-page-grid" style="display: none; margin-top: 20px;"></div>
+                </div>
+
+                <div class="card" style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <span style="color: var(--text-sub); font-size: 13px;" id="wmStatusText">未加载文件</span>
+                    <button class="btn btn-run" id="runWmBtn" onclick="runWatermark()" disabled>添加水印并保存</button>
+                </div>
+                
+                <div style="flex-grow: 1;"></div>
+                <div class="footer">
+                    <p>PDF 工具箱 © 2026 | <a href="javascript:alert('该工具纯前端本地处理，您的文件不会上传至任何服务器。')">隐私说明</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Customizing Single Page -->
+    <div id="wmModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-left">
+                <!-- 大图预览 -->
+                <div class="pdf-page-canvas-wrapper" style="box-shadow: none; border: none; height: 100%;" id="modalCanvasWrap">
+                    <canvas class="pdf-page-canvas" id="modalCanvas"></canvas>
+                    <div class="wm-overlay" id="modalWmOverlay">CONFIDENTIAL</div>
+                </div>
+            </div>
+            <div class="modal-right">
+                <h3 style="margin-bottom: 16px; font-size: 18px;" id="modalTitle">定制第 N 页</h3>
+                
+                <label style="font-weight: bold; font-size: 14px; margin-bottom: 8px;">专属文字</label>
+                <input type="text" id="modalWmText" oninput="updateModalPreview()" style="margin-bottom: 16px;">
+                
+                <label style="font-weight: bold; font-size: 14px; margin-bottom: 8px;">专属颜色</label>
+                <select id="modalWmColor" onchange="updateModalPreview()" style="margin-bottom: 24px;">
+                    <option value="gray">灰色 (推荐)</option>
+                    <option value="red">红色</option>
+                    <option value="black">黑色</option>
+                </select>
+
+                <div style="display: flex; gap: 8px; margin-top: auto;">
+                    <button class="btn btn-primary" style="flex:1;" onclick="saveModalCustom()">保存定制</button>
+                    <button class="btn btn-outline" onclick="closeModal()">取消</button>
+                </div>
+                <button class="btn btn-outline" style="margin-top: 8px; color: var(--danger); border-color: var(--danger);" onclick="clearModalCustom()">恢复为全局设置</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let wmFileObj = null;
+        let pdfTotalPages = 0;
+        let pdfjsDoc = null;
+        
+        let globalWm = { text: 'CONFIDENTIAL', color: 'gray' };
+        let customWms = {}; // { 0: {text: 'A', color: 'red'}, ... }
+        let currentModalIdx = -1;
+
+        function getCssColor(colorName) {
+            if (colorName === 'red') return 'rgba(239, 68, 68, 0.4)';
+            if (colorName === 'black') return 'rgba(0, 0, 0, 0.4)';
+            return 'rgba(107, 114, 128, 0.4)'; // gray
+        }
+
+        function getPdfLibColor(PDFLib, colorName) {
+            if (colorName === 'red') return PDFLib.rgb(0.8, 0.2, 0.2);
+            if (colorName === 'black') return PDFLib.rgb(0, 0, 0);
+            return PDFLib.rgb(0.7, 0.7, 0.7); // gray
+        }
+
+        const wmDropZone = document.getElementById('wmDropZone');
+        wmDropZone.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
+        wmDropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if(e.dataTransfer.files.length > 0) loadWmFile(e.dataTransfer.files[0]);
+        });
+
+        function handleWmFileAdded(event) {
+            if(event.target.files.length > 0) loadWmFile(event.target.files[0]);
+            event.target.value = "";
+        }
+
+        function resetWmFile() {
+            wmFileObj = null;
+            pdfjsDoc = null;
+            customWms = {};
+            document.getElementById('wmDropZone').style.display = "block";
+            document.getElementById('fileInfoArea').style.display = "none";
+            document.getElementById('wmPagesGrid').style.display = "none";
+            document.getElementById('wmStatusText').innerText = "未加载文件";
+            document.getElementById('runWmBtn').disabled = true;
+        }
+
+        async function loadWmFile(file) {
+            if (file.type !== "application/pdf") { alert("只能选择 PDF 文件！"); return; }
+            wmFileObj = file;
+            customWms = {};
+            
+            const dropLabel = document.getElementById('wmDropZone');
+            const fileInfoArea = document.getElementById('fileInfoArea');
+            const fileNameDiv = document.getElementById('wmFileName');
+            const status = document.getElementById('wmStatusText');
+            const btn = document.getElementById('runWmBtn');
+            const grid = document.getElementById('wmPagesGrid');
+            
+            dropLabel.innerHTML = "正在解析并渲染文档...";
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                pdfjsDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                pdfTotalPages = pdfjsDoc.numPages;
+                
+                grid.innerHTML = '';
+
+                // 渲染缩略图
+                for (let i = 1; i <= pdfTotalPages; i++) {
+                    const page = await pdfjsDoc.getPage(i);
+                    const viewport = page.getViewport({ scale: 0.5 });
+                    
+                    const item = document.createElement('div');
+                    item.className = 'pdf-page-item';
+                    item.ondblclick = () => openModal(i - 1);
+                    item.title = "双击可独立定制该页水印";
+                    
+                    const canvasWrap = document.createElement('div');
+                    canvasWrap.className = 'pdf-page-canvas-wrapper';
+                    
+                    const canvas = document.createElement('canvas');
+                    canvas.className = 'pdf-page-canvas';
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+                    
+                    const ctx = canvas.getContext('2d');
+                    await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+                    
+                    const overlay = document.createElement('div');
+                    overlay.className = 'wm-overlay';
+                    overlay.id = `wm-overlay-${i-1}`;
+                    
+                    const customBadge = document.createElement('div');
+                    customBadge.className = 'custom-badge';
+                    customBadge.id = `custom-badge-${i-1}`;
+                    customBadge.innerText = '专属定制';
+
+                    canvasWrap.appendChild(canvas);
+                    canvasWrap.appendChild(overlay);
+                    canvasWrap.appendChild(customBadge);
+                    
+                    const pageLabel = document.createElement('div');
+                    pageLabel.style = "font-size:12px; margin-top:8px; color: var(--text-dim); text-align:center;";
+                    pageLabel.innerText = `第 ${i} 页`;
+                    
+                    item.appendChild(canvasWrap);
+                    item.appendChild(pageLabel);
+                    grid.appendChild(item);
+                }
+
+                dropLabel.style.display = "none";
+                dropLabel.innerHTML = '点击选择 PDF 文件<span class="hide-on-mobile">（或将文件拖到此处）</span>';
+                
+                fileInfoArea.style.display = "flex";
+                fileNameDiv.innerText = `📄 ${file.name} (共 ${pdfTotalPages} 页)`;
+                
+                grid.style.display = "grid";
+
+                updateAllOverlays(); // 初始化全局效果
+                
+                status.innerText = "渲染完成，输入全局文字即可实时预览";
+                btn.disabled = false;
+            } catch(e) {
+                console.error(e);
+                dropLabel.innerHTML = "❌ 读取失败，可能是加密文件。点击重试";
+                wmFileObj = null;
+                btn.disabled = true;
+            }
+        }
+
+        // 同步全局设置与预览
+        function updateAllOverlays() {
+            globalWm.text = document.getElementById('globalWmText').value || " ";
+            globalWm.color = document.getElementById('globalWmColor').value;
+            
+            for(let i = 0; i < pdfTotalPages; i++) {
+                const overlay = document.getElementById(`wm-overlay-${i}`);
+                const badge = document.getElementById(`custom-badge-${i}`);
+                if (!overlay) continue;
+
+                if (customWms[i]) {
+                    overlay.innerText = customWms[i].text;
+                    overlay.style.color = getCssColor(customWms[i].color);
+                    badge.style.display = 'block';
+                } else {
+                    overlay.innerText = globalWm.text;
+                    overlay.style.color = getCssColor(globalWm.color);
+                    badge.style.display = 'none';
+                }
+            }
+        }
+
+        // 打开单页定制弹窗
+        async function openModal(idx) {
+            currentModalIdx = idx;
+            document.getElementById('modalTitle').innerText = `定制第 ${idx + 1} 页`;
+            
+            const currentData = customWms[idx] || globalWm;
+            document.getElementById('modalWmText').value = currentData.text;
+            document.getElementById('modalWmColor').value = currentData.color;
+
+            // 渲染高清大图
+            const canvas = document.getElementById('modalCanvas');
+            const ctx = canvas.getContext('2d');
+            const page = await pdfjsDoc.getPage(idx + 1);
+            const viewport = page.getViewport({ scale: 1.5 });
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+
+            updateModalPreview();
+            document.getElementById('wmModal').style.display = 'flex';
+        }
+
+        function updateModalPreview() {
+            const text = document.getElementById('modalWmText').value || " ";
+            const color = document.getElementById('modalWmColor').value;
+            const overlay = document.getElementById('modalWmOverlay');
+            overlay.innerText = text;
+            overlay.style.color = getCssColor(color);
+        }
+
+        function closeModal() { document.getElementById('wmModal').style.display = 'none'; }
+
+        function saveModalCustom() {
+            customWms[currentModalIdx] = {
+                text: document.getElementById('modalWmText').value || " ",
+                color: document.getElementById('modalWmColor').value
+            };
+            updateAllOverlays();
+            closeModal();
+        }
+
+        function clearModalCustom() {
+            delete customWms[currentModalIdx];
+            updateAllOverlays();
+            closeModal();
+        }
+
+        // 最终保存
+        async function runWatermark() {
+            if (!wmFileObj) return;
+
+            const btn = document.getElementById('runWmBtn');
+            const status = document.getElementById('wmStatusText');
+
+            btn.disabled = true; btn.innerText = "处理中...";
+            status.innerText = "正在将水印压入文档...";
+
+            try {
+                const { PDFDocument, StandardFonts, degrees } = PDFLib;
+                const arrayBuffer = await wmFileObj.arrayBuffer();
+                const newDoc = await PDFDocument.load(arrayBuffer);
+                const font = await newDoc.embedFont(StandardFonts.HelveticaBold);
+
+                const pages = newDoc.getPages();
+                
+                for (let i = 0; i < pages.length; i++) {
+                    const page = pages[i];
+                    const wmConfig = customWms[i] || globalWm;
+                    if (!wmConfig.text.trim()) continue; // 没有文字就不画
+
+                    const fontColor = getPdfLibColor(PDFLib, wmConfig.color);
+                    
+                    const { width, height } = page.getSize();
+                    // 动态调整字号，避免文字太长溢出
+                    let textSize = 60;
+                    let textWidth = font.widthOfTextAtSize(wmConfig.text, textSize);
+                    
+                    // 如果超过宽度，缩放字号
+                    const diagonal = Math.sqrt(width*width + height*height) * 0.8; 
+                    if(textWidth > diagonal) {
+                        textSize = textSize * (diagonal / textWidth);
+                        textWidth = font.widthOfTextAtSize(wmConfig.text, textSize);
+                    }
+                    const textHeight = font.heightAtSize(textSize);
+
+                    page.drawText(wmConfig.text, {
+                        x: width / 2 - (textWidth * 0.707) / 2, // 近似偏移
+                        y: height / 2 - (textWidth * 0.707) / 2,
+                        size: textSize,
+                        font: font,
+                        color: fontColor,
+                        opacity: 0.3,
+                        rotate: degrees(45),
+                    });
+                }
+
+                const pdfBytes = await newDoc.save();
+                const baseName = wmFileObj.name.replace(/\.[^/.]+$/, "");
+                triggerDownload(pdfBytes, `${baseName}_水印.pdf`);
+
+                status.innerText = "✅ 处理完成，已下载"; status.style.color = "var(--success)";
+            } catch (e) {
+                console.error(e); status.innerText = "❌ 处理失败"; status.style.color = "var(--danger)";
+            } finally {
+                btn.disabled = false; btn.innerText = "添加水印并保存";
+                setTimeout(() => { status.innerText = "文件已就绪，可继续调整参数"; status.style.color = "var(--text-sub)"; }, 4000);
+            }
+        }
+    </script>
+</body>
+</html>

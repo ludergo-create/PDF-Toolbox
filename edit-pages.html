@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>旋转与删除 PDF 页面 - 免费在线工具 | PDF 工具箱</title>
+    <meta name="description" content="免费在线全景预览，直观操作旋转或删除不需要的 PDF 页面。本地处理，保护隐私。">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.8em' font-size='100' fill='%236C63FF'>◈</text></svg>">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/common.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <style>
+        #nav-edit { background-color: var(--primary-soft); color: var(--primary); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="trust-banner">🔒 纯本地处理：所有操作均在浏览器内完成，文件绝不上传服务器，保护您的隐私安全。</div>
+
+    <div class="app-body">
+        
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <a href="index.html" class="logo-area">
+                <div class="logo-icon">◈</div>
+                <div class="logo-title">PDF 工具箱</div>
+            </a>
+            <div class="divider"></div>
+            
+            <div class="nav-label hide-on-mobile">工具导航</div>
+            <a href="index.html" class="nav-btn" id="nav-home">首页</a>
+            
+            <div class="nav-label hide-on-mobile" style="margin-top: 12px;">核心处理</div>
+            <a href="merge.html" class="nav-btn" id="nav-merge">合并 PDF</a>
+            <a href="split.html" class="nav-btn" id="nav-split">拆分 / 提取</a>
+            <a href="edit-pages.html" class="nav-btn" id="nav-edit">旋转与删除</a>
+            
+            <div class="nav-label hide-on-mobile" style="margin-top: 12px;">格式转换</div>
+            <a href="pdf-to-img.html" class="nav-btn" id="nav-pdf2img">PDF 转图片</a>
+            <a href="img-to-pdf.html" class="nav-btn" id="nav-img2pdf">图片转 PDF</a>
+            
+            <div class="nav-label hide-on-mobile" style="margin-top: 12px;">安全与保护</div>
+            <a href="watermark.html" class="nav-btn" id="nav-watermark">PDF 加水印</a>
+
+            <div class="spacer"></div>
+            <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">切换深色</button>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            
+            <div class="page-view">
+                <div class="header">
+                    <h1>旋转与删除页面</h1>
+                    <span class="badge">全景可视化</span>
+                </div>
+                
+                <div class="card">
+                    <!-- 拖拽区 -->
+                    <label for="editFileInput" class="split-file-btn" id="editDropZone">
+                        点击选择 PDF 文件<span class="hide-on-mobile">（或将文件拖到此处）</span>
+                    </label>
+                    <input type="file" id="editFileInput" accept="application/pdf,.pdf" onchange="handleEditFileAdded(event)">
+                    
+                    <!-- 卡片信息区 -->
+                    <div id="fileInfoArea" class="file-loaded-card" style="display:none;">
+                        <div id="editFileName" class="file-name">📄 filename.pdf (共 0 页)</div>
+                        <div class="trash-btn" onclick="resetEditFile()" title="移除文件">
+                            <svg viewBox="0 0 24 24"><path d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-3.5l-1-1zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7z"/></svg>
+                        </div>
+                    </div>
+
+                    <!-- 全局操作栏 -->
+                    <div id="globalToolbar" style="display:none; background-color: var(--bg-surface); border-radius: 12px; padding: 10px 20px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                        <span style="font-size: 13px; font-weight: bold;">全局操作：</span>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-outline" onclick="rotateAll(-90)">全体 ↺ 左转</button>
+                            <button class="btn btn-outline" onclick="rotateAll(90)">全体 ↻ 右转</button>
+                            <button class="btn btn-outline" onclick="recoverAll()">撤销全部删除</button>
+                        </div>
+                    </div>
+
+                    <!-- PDF 网格容器 -->
+                    <div id="pagesGrid" class="pdf-page-grid" style="display: none;"></div>
+
+                </div>
+
+                <div class="card" style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <span style="color: var(--text-sub); font-size: 13px;" id="editStatusText">未加载文件</span>
+                    <button class="btn btn-run" id="runEditBtn" onclick="runEdit()" disabled>应用修改并保存</button>
+                </div>
+                
+                <div style="flex-grow: 1;"></div>
+                <div class="footer">
+                    <p>PDF 工具箱 © 2026 | <a href="javascript:alert('该工具纯前端本地处理，您的文件不会上传至任何服务器。')">隐私说明</a></p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        let editFileObj = null;
+        let pdfTotalPages = 0;
+        let pagesState = []; // [{deleted: false, rotation: 0}]
+
+        const editDropZone = document.getElementById('editDropZone');
+        editDropZone.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
+        editDropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if(e.dataTransfer.files.length > 0) loadEditFile(e.dataTransfer.files[0]);
+        });
+
+        function handleEditFileAdded(event) {
+            if(event.target.files.length > 0) loadEditFile(event.target.files[0]);
+            event.target.value = "";
+        }
+
+        function resetEditFile() {
+            editFileObj = null;
+            document.getElementById('editDropZone').style.display = "block";
+            document.getElementById('fileInfoArea').style.display = "none";
+            document.getElementById('globalToolbar').style.display = "none";
+            document.getElementById('pagesGrid').style.display = "none";
+            document.getElementById('editStatusText').innerText = "未加载文件";
+            document.getElementById('runEditBtn').disabled = true;
+        }
+
+        async function loadEditFile(file) {
+            if (file.type !== "application/pdf") { alert("只能选择 PDF 文件！"); return; }
+            editFileObj = file;
+            
+            const dropLabel = document.getElementById('editDropZone');
+            const fileInfoArea = document.getElementById('fileInfoArea');
+            const fileNameDiv = document.getElementById('editFileName');
+            const status = document.getElementById('editStatusText');
+            const btn = document.getElementById('runEditBtn');
+            const grid = document.getElementById('pagesGrid');
+            const toolbar = document.getElementById('globalToolbar');
+            
+            dropLabel.innerHTML = "正在解析并渲染文档...";
+            try {
+                // 1. 获取 PDF
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                pdfTotalPages = pdf.numPages;
+                
+                // 2. 初始化状态
+                pagesState = Array.from({length: pdfTotalPages}, () => ({deleted: false, rotation: 0}));
+                grid.innerHTML = '';
+
+                // 3. 渲染缩略图
+                for (let i = 1; i <= pdfTotalPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const viewport = page.getViewport({ scale: 0.5 }); // 缩略图比例
+                    
+                    const item = document.createElement('div');
+                    item.className = 'pdf-page-item';
+                    item.id = `page-item-${i-1}`;
+                    
+                    const canvasWrap = document.createElement('div');
+                    canvasWrap.className = 'pdf-page-canvas-wrapper';
+                    
+                    const canvas = document.createElement('canvas');
+                    canvas.className = 'pdf-page-canvas';
+                    canvas.id = `page-canvas-${i-1}`;
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+                    
+                    const ctx = canvas.getContext('2d');
+                    await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+                    
+                    const mask = document.createElement('div');
+                    mask.className = 'page-deleted-mask';
+                    mask.id = `page-mask-${i-1}`;
+                    mask.style.display = 'none';
+                    mask.innerText = '已删除';
+                    
+                    canvasWrap.appendChild(canvas);
+                    canvasWrap.appendChild(mask);
+                    
+                    const actions = document.createElement('div');
+                    actions.className = 'pdf-page-actions';
+                    actions.innerHTML = `
+                        <button class="page-btn" onclick="rotatePage(${i-1}, -90)">↺</button>
+                        <button class="page-btn" onclick="rotatePage(${i-1}, 90)">↻</button>
+                        <button class="page-btn" style="color:var(--danger);" onclick="toggleDeletePage(${i-1})">🗑️</button>
+                        <div style="font-size:12px; margin-top:4px; width:100%; text-align:center; color: var(--text-dim);">第 ${i} 页</div>
+                    `;
+                    
+                    item.appendChild(canvasWrap);
+                    item.appendChild(actions);
+                    grid.appendChild(item);
+                }
+
+                // 4. 更新 UI
+                dropLabel.style.display = "none";
+                dropLabel.innerHTML = '点击选择 PDF 文件<span class="hide-on-mobile">（或将文件拖到此处）</span>';
+                
+                fileInfoArea.style.display = "flex";
+                fileNameDiv.innerText = `📄 ${file.name} (共 ${pdfTotalPages} 页)`;
+                
+                toolbar.style.display = "flex";
+                grid.style.display = "grid";
+
+                status.innerText = "渲染完成，请直观地调整您的页面";
+                btn.disabled = false;
+            } catch(e) {
+                console.error(e);
+                dropLabel.innerHTML = "❌ 读取失败，可能是加密文件。点击重试";
+                editFileObj = null;
+                btn.disabled = true;
+            }
+        }
+
+        // 单页操作
+        function rotatePage(idx, deg) {
+            pagesState[idx].rotation = (pagesState[idx].rotation + deg) % 360;
+            document.getElementById(`page-canvas-${idx}`).style.transform = `rotate(${pagesState[idx].rotation}deg)`;
+        }
+
+        function toggleDeletePage(idx) {
+            pagesState[idx].deleted = !pagesState[idx].deleted;
+            document.getElementById(`page-mask-${idx}`).style.display = pagesState[idx].deleted ? 'flex' : 'none';
+            document.getElementById(`page-item-${idx}`).style.opacity = pagesState[idx].deleted ? '0.6' : '1';
+        }
+
+        // 全局操作
+        function rotateAll(deg) {
+            for(let i = 0; i < pdfTotalPages; i++) {
+                rotatePage(i, deg);
+            }
+        }
+
+        function recoverAll() {
+            for(let i = 0; i < pdfTotalPages; i++) {
+                if(pagesState[i].deleted) toggleDeletePage(i);
+            }
+        }
+
+        // 最终保存
+        async function runEdit() {
+            if (!editFileObj) return;
+
+            // 检查是否全部删除了
+            const aliveCount = pagesState.filter(p => !p.deleted).length;
+            if (aliveCount === 0) { alert("您已删除了所有页面，无法保存！"); return; }
+
+            const btn = document.getElementById('runEditBtn');
+            const status = document.getElementById('editStatusText');
+            
+            btn.disabled = true; btn.innerText = "处理中...";
+            status.innerText = "正在生成最终文档...";
+
+            try {
+                const { PDFDocument, degrees } = PDFLib;
+                const arrayBuffer = await editFileObj.arrayBuffer();
+                const newDoc = await PDFDocument.load(arrayBuffer);
+
+                // 必须从后往前删，否则索引会乱
+                for (let i = pdfTotalPages - 1; i >= 0; i--) {
+                    if (pagesState[i].deleted) {
+                        newDoc.removePage(i);
+                    } else {
+                        const extraRot = pagesState[i].rotation;
+                        if (extraRot !== 0) {
+                            const page = newDoc.getPage(i);
+                            const currentAngle = page.getRotation().angle;
+                            page.setRotation(degrees(currentAngle + extraRot));
+                        }
+                    }
+                }
+
+                const pdfBytes = await newDoc.save();
+                const baseName = editFileObj.name.replace(/\.[^/.]+$/, "");
+                triggerDownload(pdfBytes, `${baseName}_已调整.pdf`);
+
+                status.innerText = "✅ 修改完成，已下载"; status.style.color = "var(--success)";
+            } catch (e) {
+                console.error(e); status.innerText = "❌ 处理失败"; status.style.color = "var(--danger)";
+            } finally {
+                btn.disabled = false; btn.innerText = "应用修改并保存";
+                setTimeout(() => { status.innerText = "文件已就绪，可继续调整"; status.style.color = "var(--text-sub)"; }, 4000);
+            }
+        }
+    </script>
+</body>
+</html>

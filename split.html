@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拆分与提取 PDF 页面 - 免费在线工具 | PDF 工具箱</title>
+    <meta name="description" content="免费在线拆分、提取 PDF 页面，支持按范围或分组导出。所有文件均在浏览器本地处理，不上传服务器，保护隐私。">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.8em' font-size='100' fill='%236C63FF'>◈</text></svg>">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/common.js"></script>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        #nav-split { background-color: var(--primary-soft); color: var(--primary); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="trust-banner">🔒 纯本地处理：所有操作均在浏览器内完成，文件绝不上传服务器，保护您的隐私安全。</div>
+
+    <div class="app-body">
+        
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <a href="index.html" class="logo-area">
+                <div class="logo-icon">◈</div>
+                <div class="logo-title">PDF 工具箱</div>
+            </a>
+            <div class="divider"></div>
+            
+            <div class="nav-label hide-on-mobile">工具导航</div>
+            <a href="index.html" class="nav-btn" id="nav-home">首页</a>
+            
+            <div class="nav-label hide-on-mobile" style="margin-top: 12px;">核心处理</div>
+            <a href="merge.html" class="nav-btn" id="nav-merge">合并 PDF</a>
+            <a href="split.html" class="nav-btn" id="nav-split">拆分 / 提取</a>
+            <a href="edit-pages.html" class="nav-btn" id="nav-edit">旋转与删除</a>
+            
+            <div class="nav-label hide-on-mobile" style="margin-top: 12px;">格式转换</div>
+            <a href="pdf-to-img.html" class="nav-btn" id="nav-pdf2img">PDF 转图片</a>
+            <a href="img-to-pdf.html" class="nav-btn" id="nav-img2pdf">图片转 PDF</a>
+            
+            <div class="nav-label hide-on-mobile" style="margin-top: 12px;">安全与保护</div>
+            <a href="watermark.html" class="nav-btn" id="nav-watermark">PDF 加水印</a>
+
+            <div class="spacer"></div>
+            <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">切换深色</button>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            
+            <div class="page-view">
+                <div class="header">
+                    <h1>页面拆分 / 提取</h1>
+                    <span class="badge badge-warning">多种模式</span>
+                </div>
+                
+                <div class="card">
+                    <!-- 未加载时的拖拽区 -->
+                    <label for="splitFileInput" class="split-file-btn" id="splitDropZone">
+                        点击选择 PDF 文件<span class="hide-on-mobile">（或将文件拖到此处）</span>
+                    </label>
+                    <input type="file" id="splitFileInput" accept="application/pdf,.pdf" onchange="handleSplitFileAdded(event)">
+                    
+                    <!-- 加载成功后的漂亮卡片 -->
+                    <div id="fileInfoArea" class="file-loaded-card" style="display:none;">
+                        <div id="splitFileName" class="file-name">📄 filename.pdf (共 0 页)</div>
+                        <div class="trash-btn" onclick="resetSplitFile()" title="移除文件">
+                            <svg viewBox="0 0 24 24"><path d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-3.5l-1-1zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7z"/></svg>
+                        </div>
+                    </div>
+
+                    <div style="font-size: 12px; color: var(--text-dim); margin-top: -16px; margin-bottom: 20px; text-align: center;">建议单文件 &lt; 100MB，超大文件可能导致浏览器卡顿。</div>
+
+                    <div style="background-color: var(--bg-surface); border-radius: 12px; padding: 10px 20px;">
+                        <div style="font-size: 12px; color: var(--text-dim); margin-bottom: 8px;">拆分模式</div>
+                        
+                        <div class="mode-row">
+                            <label class="radio-label">
+                                <input type="radio" name="splitMode" value="all" checked onchange="updateSplitModeUI()"> 全部拆分为单页
+                            </label>
+                            <span class="mode-desc">每一页导出为独立 PDF 文件</span>
+                        </div>
+
+                        <div class="mode-row">
+                            <label class="radio-label">
+                                <input type="radio" name="splitMode" value="range" onchange="updateSplitModeUI()"> 提取连续范围
+                            </label>
+                            <input type="number" id="rangeStart" placeholder="起始" style="width: 80px;" disabled>
+                            <span style="color: var(--text-dim)">—</span>
+                            <input type="number" id="rangeEnd" placeholder="结束" style="width: 80px;" disabled>
+                            <span class="mode-desc">示例：2 - 10，将提取该范围内页面合成一份</span>
+                        </div>
+
+                        <div class="mode-row">
+                            <label class="radio-label">
+                                <input type="radio" name="splitMode" value="group" onchange="updateSplitModeUI()"> 按分组导出
+                            </label>
+                            <input type="text" id="groupInput" placeholder="例如：1, 3, 5-8" style="width: 200px;" disabled>
+                            <span class="mode-desc">格式如：1, 3, 5-8（含 "-" 表示范围，单数字表示单页）</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <span style="color: var(--text-sub); font-size: 13px;" id="splitStatusText">未加载文件</span>
+                    <button class="btn btn-run btn-run-danger" id="runSplitBtn" onclick="runSplit()" disabled>执行拆分</button>
+                </div>
+                
+                <div style="flex-grow: 1;"></div>
+                <div class="footer">
+                    <p>PDF 工具箱 © 2026 | <a href="javascript:alert('该工具纯前端本地处理，您的文件不会上传至任何服务器。')">隐私说明</a></p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        let splitFileObj = null;
+        let splitPdfDoc = null;
+        let splitTotalPages = 0;
+
+        function updateSplitModeUI() {
+            const mode = document.querySelector('input[name="splitMode"]:checked').value;
+            document.getElementById('rangeStart').disabled = (mode !== 'range');
+            document.getElementById('rangeEnd').disabled = (mode !== 'range');
+            document.getElementById('groupInput').disabled = (mode !== 'group');
+        }
+
+        const splitDropZone = document.getElementById('splitDropZone');
+        splitDropZone.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
+        splitDropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if(e.dataTransfer.files.length > 0) loadSplitFile(e.dataTransfer.files[0]);
+        });
+
+        function handleSplitFileAdded(event) {
+            if(event.target.files.length > 0) loadSplitFile(event.target.files[0]);
+            event.target.value = "";
+        }
+
+        function resetSplitFile() {
+            splitFileObj = null;
+            splitPdfDoc = null;
+            document.getElementById('splitDropZone').style.display = "block";
+            document.getElementById('fileInfoArea').style.display = "none";
+            document.getElementById('splitStatusText').innerText = "未加载文件";
+            document.getElementById('runSplitBtn').disabled = true;
+        }
+
+        async function loadSplitFile(file) {
+            if (file.type !== "application/pdf") { alert("只能选择 PDF 文件！"); return; }
+            splitFileObj = file;
+            
+            const dropLabel = document.getElementById('splitDropZone');
+            const fileInfoArea = document.getElementById('fileInfoArea');
+            const fileNameDiv = document.getElementById('splitFileName');
+            const status = document.getElementById('splitStatusText');
+            const btn = document.getElementById('runSplitBtn');
+            
+            dropLabel.innerHTML = "正在读取文档...";
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const { PDFDocument } = PDFLib;
+                splitPdfDoc = await PDFDocument.load(arrayBuffer);
+                splitTotalPages = splitPdfDoc.getPageCount();
+                
+                dropLabel.style.display = "none";
+                dropLabel.innerHTML = '点击选择 PDF 文件<span class="hide-on-mobile">（或将文件拖到此处）</span>';
+                
+                fileInfoArea.style.display = "flex";
+                fileNameDiv.innerText = `📄 ${file.name} (共 ${splitTotalPages} 页)`;
+                
+                status.innerText = "文件已就绪，请选择拆分模式";
+                btn.disabled = false;
+            } catch(e) {
+                dropLabel.innerHTML = "❌ 读取失败，可能是加密文件。点击重试";
+                splitFileObj = null;
+                btn.disabled = true;
+            }
+        }
+
+        async function runSplit() {
+            if (!splitFileObj || !splitPdfDoc) { alert("请先选择一个 PDF 文件！"); return; }
+            
+            const mode = document.querySelector('input[name="splitMode"]:checked').value;
+            let exportTasks = [];
+
+            try {
+                if (mode === 'all') {
+                    for (let i = 0; i < splitTotalPages; i++) {
+                        exportTasks.push({ suffix: `${i+1}`, pages: [i] });
+                    }
+                } else if (mode === 'range') {
+                    const start = parseInt(document.getElementById('rangeStart').value);
+                    const end = parseInt(document.getElementById('rangeEnd').value);
+                    if (isNaN(start) || isNaN(end) || start < 1 || start > end || end > splitTotalPages) {
+                        throw new Error(`范围无效，请输入 1 - ${splitTotalPages} 之间的有效数字。`);
+                    }
+                    let pagesArr = [];
+                    for(let i = start; i <= end; i++) pagesArr.push(i - 1);
+                    exportTasks.push({ suffix: `${start}-${end}`, pages: pagesArr });
+                } else if (mode === 'group') {
+                    const txt = document.getElementById('groupInput').value;
+                    const parts = txt.replace(/，/g, ",").split(",");
+                    for (let p of parts) {
+                        p = p.trim();
+                        if(!p) continue;
+                        let suffix = p;
+                        if (p.includes("-")) {
+                            const [sStr, eStr] = p.split("-");
+                            const s = parseInt(sStr), e = parseInt(eStr);
+                            if(isNaN(s) || isNaN(e) || s>e || s<1 || e>splitTotalPages) throw new Error(`分组格式有误: "${p}"。请输入类似：1, 3, 5-8`);
+                            for(let i=s; i<=e; i++) pagesArr.push(i-1);
+                        } else {
+                            const s = parseInt(p);
+                            if(isNaN(s) || s<1 || s>splitTotalPages) throw new Error(`分组页码有误: "${p}"。请输入类似：1, 3, 5-8`);
+                            pagesArr.push(s-1);
+                        }
+                        exportTasks.push({ suffix: suffix, pages: pagesArr });
+                    }
+                    if(exportTasks.length === 0) throw new Error("请填写有效的分组规则！格式如：1, 3, 5-8");
+                }
+            } catch (e) {
+                alert(e.message); return;
+            }
+
+            const btn = document.getElementById('runSplitBtn');
+            const status = document.getElementById('splitStatusText');
+            btn.disabled = true; btn.innerText = "处理中...";
+            status.innerText = "正在切分并打包...";
+
+            try {
+                const { PDFDocument } = PDFLib;
+                const baseName = splitFileObj.name.replace(/\.[^/.]+$/, "");
+                const zip = new JSZip();
+
+                for (let i = 0; i < exportTasks.length; i++) {
+                    let task = exportTasks[i];
+                    status.innerText = `正在处理第 ${i + 1} / ${exportTasks.length} 个文件...`;
+                    
+                    const newDoc = await PDFDocument.create();
+                    const copiedPages = await newDoc.copyPages(splitPdfDoc, task.pages);
+                    copiedPages.forEach(p => newDoc.addPage(p));
+                    
+                    const bytes = await newDoc.save();
+                    const fileName = `${baseName}_${task.suffix}.pdf`;
+                    
+                    if (exportTasks.length === 1) {
+                        triggerDownload(bytes, fileName);
+                    } else {
+                        zip.file(fileName, bytes);
+                    }
+                }
+
+                if (exportTasks.length > 1) {
+                    status.innerText = "正在生成 ZIP 压缩包...";
+                    const zipContent = await zip.generateAsync({type:"blob"});
+                    triggerDownload(zipContent, `${baseName}_拆分包.zip`, 'application/zip');
+                }
+
+                status.innerText = "✅ 拆分完成，已下载"; status.style.color = "var(--success)";
+            } catch (e) {
+                console.error(e); status.innerText = "❌ 处理失败"; status.style.color = "var(--danger)";
+            } finally {
+                btn.disabled = false; btn.innerText = "执行拆分";
+                setTimeout(() => { status.innerText = "文件已就绪，请选择拆分模式"; status.style.color = "var(--text-sub)"; }, 4000);
+            }
+        }
+    </script>
+</body>
+</html>
