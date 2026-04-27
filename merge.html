@@ -129,6 +129,12 @@
         const mergeDropZone = document.getElementById('mergeDropZone');
         mergeDropZone.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
         mergeDropZone.addEventListener('drop', (e) => { e.preventDefault(); addFilesToMergeList(e.dataTransfer.files); });
+        
+        mergeDropZone.style.cursor = 'pointer';
+        mergeDropZone.addEventListener('click', (e) => {
+            if (e.target.closest('.file-item')) return;
+            document.getElementById('addFilesInput').click();
+        });
 
         async function runMerge() {
             const orderedItems = document.querySelectorAll('#sortableList .file-item');

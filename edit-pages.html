@@ -103,10 +103,138 @@
         </div>
     </div>
 
+    <!-- Modal for Previewing Single Page -->
+    <div id="previewModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 900px; flex-direction: column; align-items: center; max-height: 95vh;">
+            <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 id="previewModalTitle" style="font-size: 18px;">第 N 页预览</h3>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <div style="background: var(--bg-surface); padding: 4px 12px; border-radius: 20px; display: flex; gap: 16px; align-items: center;">
+                        <button class="btn btn-outline" style="padding: 2px 8px; font-weight: bold; border: none;" onclick="zoomPreviewModal(-0.2)">－</button>
+                        <span id="previewModalZoomLevel" style="font-size: 13px; font-weight: bold; width: 40px; text-align: center;">100%</span>
+                        <button class="btn btn-outline" style="padding: 2px 8px; font-weight: bold; border: none;" onclick="zoomPreviewModal(0.2)">＋</button>
+                        <button class="btn btn-outline" style="padding: 2px 8px; font-size: 12px; border: none;" onclick="fitPreviewModalToWindow()">适应窗口</button>
+                    </div>
+                    <button class="btn btn-outline" onclick="closePreviewModal()">关闭</button>
+                </div>
+            </div>
+            
+            <div class="pdf-page-canvas-wrapper" style="box-shadow: none; border: none; height: 60vh; width: 100%; background: #e5e7eb; overflow: hidden; cursor: grab;" id="previewModalCanvasWrap">
+                <div id="previewModalZoomContainer" style="position: relative; display: flex; justify-content: center; align-items: center; transform-origin: center; transition: transform 0.1s ease-out; width: 100%; height: 100%;">
+                    <div id="previewModalRotateContainer" style="position: relative; transition: transform 0.3s ease; display: flex; justify-content: center; align-items: center;">
+                        <canvas class="pdf-page-canvas" id="previewModalCanvas" style="max-width: none; max-height: none; width: auto; height: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: none;"></canvas>
+                        <div class="page-deleted-mask" id="previewModalMask" style="display: none; font-size: 32px; width: 100%; height: 100%;">已删除</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 20px;">
+                <button class="btn btn-outline" onclick="rotatePreviewPage(-90)">↺ 左转</button>
+                <button class="btn btn-outline" onclick="rotatePreviewPage(90)">↻ 右转</button>
+                <button class="btn btn-outline" style="color:var(--danger); border-color:var(--danger);" onclick="toggleDeletePreviewPage()" id="previewModalDelBtn">🗑️ 删除页面</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let editFileObj = null;
         let pdfTotalPages = 0;
         let pagesState = []; // [{deleted: false, rotation: 0}]
+        let currentPreviewIdx = -1;
+
+        let previewZoom = 1;
+        let previewPanX = 0;
+        let previewPanY = 0;
+        let isPreviewPanning = false;
+        let pStartX, pStartY;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const wrap = document.getElementById('previewModalCanvasWrap');
+            if(wrap) {
+                wrap.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    const delta = e.deltaY < 0 ? 0.1 : -0.1;
+                    zoomPreviewModal(delta);
+                });
+                wrap.addEventListener('mousedown', (e) => {
+                    isPreviewPanning = true;
+                    pStartX = e.clientX - previewPanX;
+                    pStartY = e.clientY - previewPanY;
+                    wrap.style.cursor = 'grabbing';
+                });
+                wrap.addEventListener('mousemove', (e) => {
+                    if (!isPreviewPanning) return;
+                    previewPanX = e.clientX - pStartX;
+                    previewPanY = e.clientY - pStartY;
+                    applyPreviewTransform();
+                });
+                wrap.addEventListener('mouseup', () => { isPreviewPanning = false; wrap.style.cursor = 'grab'; });
+                wrap.addEventListener('mouseleave', () => { isPreviewPanning = false; wrap.style.cursor = 'grab'; });
+            }
+        });
+
+        function zoomPreviewModal(delta) {
+            previewZoom = Math.max(0.1, Math.min(previewZoom + delta, 5));
+            applyPreviewTransform();
+        }
+
+        function fitPreviewModalToWindow() {
+            const wrap = document.getElementById('previewModalCanvasWrap');
+            const canvas = document.getElementById('previewModalCanvas');
+            if (canvas.width && canvas.height) {
+                const scaleX = (wrap.clientWidth - 40) / canvas.width;
+                const scaleY = (wrap.clientHeight - 40) / canvas.height;
+                previewZoom = Math.max(0.1, Math.min(scaleX, scaleY, 1));
+            } else {
+                previewZoom = 1;
+            }
+            previewPanX = 0;
+            previewPanY = 0;
+            applyPreviewTransform();
+        }
+
+        function applyPreviewTransform() {
+            const container = document.getElementById('previewModalZoomContainer');
+            container.style.transform = `translate(${previewPanX}px, ${previewPanY}px) scale(${previewZoom})`;
+            document.getElementById('previewModalZoomLevel').innerText = Math.round(previewZoom * 100) + '%';
+        }
+
+        async function openPreviewModal(idx) {
+            currentPreviewIdx = idx;
+            document.getElementById('previewModalTitle').innerText = `第 ${idx + 1} 页预览`;
+
+            const canvas = document.getElementById('previewModalCanvas');
+            const ctx = canvas.getContext('2d');
+            const arrayBuffer = await editFileObj.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            const page = await pdf.getPage(idx + 1);
+            const viewport = page.getViewport({ scale: 2.0 }); // 高清渲染
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+
+            updatePreviewModalState();
+            document.getElementById('previewModal').style.display = 'flex';
+            setTimeout(() => fitPreviewModalToWindow(), 10);
+        }
+
+        function updatePreviewModalState() {
+            const state = pagesState[currentPreviewIdx];
+            document.getElementById('previewModalRotateContainer').style.transform = `rotate(${state.rotation}deg)`;
+            document.getElementById('previewModalMask').style.display = state.deleted ? 'flex' : 'none';
+            document.getElementById('previewModalDelBtn').innerText = state.deleted ? '🔄 恢复页面' : '🗑️ 删除页面';
+        }
+        function rotatePreviewPage(deg) {
+            rotatePage(currentPreviewIdx, deg);
+            updatePreviewModalState();
+        }
+
+        function toggleDeletePreviewPage() {
+            toggleDeletePage(currentPreviewIdx);
+            updatePreviewModalState();
+        }
+
+        function closePreviewModal() { document.getElementById('previewModal').style.display = 'none'; }
 
         const editDropZone = document.getElementById('editDropZone');
         editDropZone.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
@@ -161,6 +289,8 @@
                     const item = document.createElement('div');
                     item.className = 'pdf-page-item';
                     item.id = `page-item-${i-1}`;
+                    item.ondblclick = () => openPreviewModal(i - 1);
+                    item.title = "双击放大预览并精细操作";
                     
                     const canvasWrap = document.createElement('div');
                     canvasWrap.className = 'pdf-page-canvas-wrapper';
