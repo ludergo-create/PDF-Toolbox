@@ -227,10 +227,10 @@
 
                 <div class="modal-right-actions">
                     <div style="display: flex; gap: 8px;">
-                        <button class="btn btn-primary" style="flex:1;" onclick="saveModalCustom()">保存定制</button>
-                        <button class="btn btn-outline" onclick="closeModal()">取消</button>
+                        <button class="btn btn-outline" style="flex:1; color: var(--danger); border-color: var(--danger);" onclick="clearModalCustom()">恢复为全局设置</button>
+                        <button class="btn btn-outline" style="flex:1;" onclick="closeModal()">取消</button>
                     </div>
-                    <button class="btn btn-outline" style="margin-top: 8px; color: var(--danger); border-color: var(--danger);" onclick="clearModalCustom()">恢复为全局设置</button>
+                    <button class="btn btn-primary" style="margin-top: 8px; width: 100%;" onclick="saveModalCustom()">保存定制</button>
                 </div>
             </div>
         </div>
