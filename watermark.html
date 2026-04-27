@@ -18,6 +18,9 @@
         .setting-group { margin-bottom: 12px; }
         .setting-group label { display: block; font-weight: bold; font-size: 13px; margin-bottom: 6px; color: var(--text-main); }
         .wm-canvas-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
+        .modal-right { overflow-y: visible; }
+        .modal-right-scroll { flex: 1; overflow-y: auto; min-height: 0; }
+        .modal-right-actions { flex-shrink: 0; border-top: 1px solid var(--divider); padding-top: 16px; }
     </style>
 </head>
 <body>
@@ -169,62 +172,66 @@
                 </div>
             </div>
             <div class="modal-right">
-                <h3 style="margin-bottom: 16px; font-size: 18px;" id="modalTitle">定制第 N 页</h3>
-                
-                <div class="setting-group">
-                    <label>专属文字</label>
-                    <input type="text" id="modalWmText" oninput="updateModalPreview()" style="width: 100%;">
-                </div>
-                <div class="setting-group">
-                    <label>颜色</label>
-                    <select id="modalWmColor" onchange="updateModalPreview()" style="width: 100%;">
-                        <option value="#6B7280">灰色</option>
-                        <option value="#EF4444">红色</option>
-                        <option value="#3B82F6">蓝色</option>
-                        <option value="#111827">黑色</option>
-                    </select>
-                </div>
-                <div class="setting-group">
-                    <label>排布模式</label>
-                    <select id="modalWmMode" onchange="updateModalPreview()" style="width: 100%;">
-                        <option value="single">单条居中</option>
-                        <option value="tile">多行平铺</option>
-                    </select>
-                </div>
-                <div class="setting-group">
-                    <label>文字方向</label>
-                    <select id="modalWmFlip" onchange="updateModalPreview()" style="width: 100%;">
-                        <option value="none">正常 (默认)</option>
-                        <option value="reverse">文字倒序</option>
-                        <option value="rotate180">翻转 180°</option>
-                    </select>
-                </div>
-                <div class="setting-group">
-                    <label>透明度: <span id="modalValOpacity">0.3</span></label>
-                    <input type="range" id="modalWmOpacity" min="0.1" max="1" step="0.1" value="0.3" oninput="document.getElementById('modalValOpacity').innerText=this.value; updateModalPreview();" style="width: 100%;">
-                </div>
-                <div class="setting-group">
-                    <label>大小: <span id="modalValSize">100</span></label>
-                    <input type="range" id="modalWmSize" min="10" max="300" step="5" value="100" oninput="document.getElementById('modalValSize').innerText=this.value; updateModalPreview();" style="width: 100%;">
-                </div>
-                <div class="setting-group">
-                    <label>角度: <span id="modalValAngle">45</span>°</label>
-                    <input type="range" id="modalWmAngle" min="0" max="360" step="5" value="45" oninput="document.getElementById('modalValAngle').innerText=this.value; updateModalPreview();" style="width: 100%;">
-                </div>
-                <div class="setting-group" id="modalGapXGroup">
-                    <label>水平间距: <span id="modalValGapX">100</span></label>
-                    <input type="range" id="modalWmGapX" min="0" max="300" step="10" value="100" oninput="document.getElementById('modalValGapX').innerText=this.value; updateModalPreview();" style="width: 100%;">
-                </div>
-                <div class="setting-group" id="modalGapYGroup" style="margin-bottom: 24px;">
-                    <label>垂直间距: <span id="modalValGapY">100</span></label>
-                    <input type="range" id="modalWmGapY" min="0" max="300" step="10" value="100" oninput="document.getElementById('modalValGapY').innerText=this.value; updateModalPreview();" style="width: 100%;">
+                <div class="modal-right-scroll">
+                    <h3 style="margin-bottom: 16px; font-size: 18px;" id="modalTitle">定制第 N 页</h3>
+
+                    <div class="setting-group">
+                        <label>专属文字</label>
+                        <input type="text" id="modalWmText" oninput="updateModalPreview()" style="width: 100%;">
+                    </div>
+                    <div class="setting-group">
+                        <label>颜色</label>
+                        <select id="modalWmColor" onchange="updateModalPreview()" style="width: 100%;">
+                            <option value="#6B7280">灰色</option>
+                            <option value="#EF4444">红色</option>
+                            <option value="#3B82F6">蓝色</option>
+                            <option value="#111827">黑色</option>
+                        </select>
+                    </div>
+                    <div class="setting-group">
+                        <label>排布模式</label>
+                        <select id="modalWmMode" onchange="updateModalPreview()" style="width: 100%;">
+                            <option value="single">单条居中</option>
+                            <option value="tile">多行平铺</option>
+                        </select>
+                    </div>
+                    <div class="setting-group">
+                        <label>文字方向</label>
+                        <select id="modalWmFlip" onchange="updateModalPreview()" style="width: 100%;">
+                            <option value="none">正常 (默认)</option>
+                            <option value="reverse">文字倒序</option>
+                            <option value="rotate180">翻转 180°</option>
+                        </select>
+                    </div>
+                    <div class="setting-group">
+                        <label>透明度: <span id="modalValOpacity">0.3</span></label>
+                        <input type="range" id="modalWmOpacity" min="0.1" max="1" step="0.1" value="0.3" oninput="document.getElementById('modalValOpacity').innerText=this.value; updateModalPreview();" style="width: 100%;">
+                    </div>
+                    <div class="setting-group">
+                        <label>大小: <span id="modalValSize">100</span></label>
+                        <input type="range" id="modalWmSize" min="10" max="300" step="5" value="100" oninput="document.getElementById('modalValSize').innerText=this.value; updateModalPreview();" style="width: 100%;">
+                    </div>
+                    <div class="setting-group">
+                        <label>角度: <span id="modalValAngle">45</span>°</label>
+                        <input type="range" id="modalWmAngle" min="0" max="360" step="5" value="45" oninput="document.getElementById('modalValAngle').innerText=this.value; updateModalPreview();" style="width: 100%;">
+                    </div>
+                    <div class="setting-group" id="modalGapXGroup">
+                        <label>水平间距: <span id="modalValGapX">100</span></label>
+                        <input type="range" id="modalWmGapX" min="0" max="300" step="10" value="100" oninput="document.getElementById('modalValGapX').innerText=this.value; updateModalPreview();" style="width: 100%;">
+                    </div>
+                    <div class="setting-group" id="modalGapYGroup" style="margin-bottom: 24px;">
+                        <label>垂直间距: <span id="modalValGapY">100</span></label>
+                        <input type="range" id="modalWmGapY" min="0" max="300" step="10" value="100" oninput="document.getElementById('modalValGapY').innerText=this.value; updateModalPreview();" style="width: 100%;">
+                    </div>
                 </div>
 
-                <div style="display: flex; gap: 8px; margin-top: auto;">
-                    <button class="btn btn-primary" style="flex:1;" onclick="saveModalCustom()">保存定制</button>
-                    <button class="btn btn-outline" onclick="closeModal()">取消</button>
+                <div class="modal-right-actions">
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-primary" style="flex:1;" onclick="saveModalCustom()">保存定制</button>
+                        <button class="btn btn-outline" onclick="closeModal()">取消</button>
+                    </div>
+                    <button class="btn btn-outline" style="margin-top: 8px; color: var(--danger); border-color: var(--danger);" onclick="clearModalCustom()">恢复为全局设置</button>
                 </div>
-                <button class="btn btn-outline" style="margin-top: 8px; color: var(--danger); border-color: var(--danger);" onclick="clearModalCustom()">恢复为全局设置</button>
             </div>
         </div>
     </div>
