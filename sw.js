@@ -1,4 +1,4 @@
-const CACHE_VERSION = '2026-04-28-4';
+const CACHE_VERSION = '2026-04-28-5';
 const STATIC_CACHE = `pdf-toolbox-static-${CACHE_VERSION}`;
 const PAGE_CACHE = `pdf-toolbox-page-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `pdf-toolbox-runtime-${CACHE_VERSION}`;
@@ -128,6 +128,25 @@ async function staleWhileRevalidate(request, cacheName) {
     return network || Response.error();
 }
 
+async function fastCacheThenUpdate(request, cacheName, fallbackUrl = './index.html') {
+    const cache = await caches.open(cacheName);
+    const cached = await cache.match(request);
+
+    const networkPromise = fetchWithCacheMode(request, 'reload')
+        .then((response) => cachePut(cacheName, request, response))
+        .catch(() => null);
+
+    if (cached) return cached;
+
+    const network = await networkPromise;
+    if (network) return network;
+
+    if (!fallbackUrl) return Response.error();
+
+    const fallback = await caches.match(fallbackUrl);
+    return fallback || Response.error();
+}
+
 self.addEventListener('fetch', (event) => {
     const { request } = event;
     if (request.method !== 'GET') return;
@@ -137,19 +156,14 @@ self.addEventListener('fetch', (event) => {
 
     const isHtmlRequest = request.mode === 'navigate' || /\.html$/i.test(url.pathname);
     if (isHtmlRequest) {
-        event.respondWith(networkFirst(request, PAGE_CACHE, { cacheMode: 'reload' }));
+        event.respondWith(fastCacheThenUpdate(request, PAGE_CACHE));
         return;
     }
 
     const isCoreAsset =
         url.pathname.endsWith('/css/style.css') || url.pathname.endsWith('/js/common.js');
     if (isCoreAsset) {
-        event.respondWith(
-            networkFirst(request, RUNTIME_CACHE, {
-                cacheMode: 'reload',
-                fallbackUrl: null,
-            })
-        );
+        event.respondWith(fastCacheThenUpdate(request, RUNTIME_CACHE, null));
         return;
     }
 
