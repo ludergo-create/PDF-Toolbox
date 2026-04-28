@@ -502,45 +502,25 @@ function registerServiceWorker() {
     });
 }
 
-function appendOptionalSiteConfigScript(configUrl) {
-    return new Promise((resolve) => {
-        const script = document.createElement('script');
-        script.src = configUrl;
-        script.async = false;
-        script.onload = () => resolve(true);
-        script.onerror = () => resolve(false);
-        document.head.appendChild(script);
-    });
-}
-
-async function loadOptionalSiteConfig() {
-    if (window.SITE_CONFIG) return;
-
-    const configUrl = new URL('js/config.js', window.location.href).href;
-    try {
-        if (window.location.protocol !== 'file:') {
-            const response = await fetch(configUrl, { method: 'HEAD', cache: 'no-cache' });
-            if (!response.ok && response.status !== 405) return;
-        }
-
-        await appendOptionalSiteConfigScript(configUrl);
-    } catch {
-        // 未配置 ICP 时静默跳过，不影响核心工具功能
-    }
-}
-
 function renderIcpBadge() {
-    const config = window.SITE_CONFIG || {};
-    const icp = (config.icpNumber || '').trim();
+    var config = window.SITE_CONFIG || {};
+    var icp = (config.icpNumber || '').trim();
     if (!icp) return;
 
-    const footer = document.querySelector('.footer');
+    var footer = document.querySelector('.footer');
     if (!footer) return;
 
-    const line = document.createElement('p');
+    var existing = document.getElementById('icp-line');
+    if (existing) {
+        existing.querySelector('a').textContent = icp;
+        return;
+    }
+
+    var line = document.createElement('p');
+    line.id = 'icp-line';
     line.style.cssText = 'font-size:12px; margin-top:6px;';
 
-    const link = document.createElement('a');
+    var link = document.createElement('a');
     link.href = 'https://beian.miit.gov.cn/';
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
@@ -618,8 +598,6 @@ function createModalFocusManager(modal, onEscape) {
     };
 }
 
-const optionalSiteConfigReady = loadOptionalSiteConfig();
-
 /** 动态更新 footer 中的版权年份 */
 function updateFooterYear() {
     const footer = document.querySelector('.footer');
@@ -636,7 +614,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initMobileNav();
     initNavigationPrefetch();
     updateFooterYear();
-    optionalSiteConfigReady.then(renderIcpBadge);
+    renderIcpBadge();
 });
 
 registerServiceWorker();

@@ -3,9 +3,6 @@ test_*.js
 node_modules/
 npm-debug.log*
 
-# ICP 备案配置（含隐私信息，不上传 GitHub）
-js/config.js
-
 # OS
 .DS_Store
 Thumbs.db

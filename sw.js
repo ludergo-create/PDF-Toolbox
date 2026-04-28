@@ -1,4 +1,4 @@
-const CACHE_VERSION = '2026-04-28-8';
+const CACHE_VERSION = '2026-04-28-9';
 const STATIC_CACHE = `pdf-toolbox-static-${CACHE_VERSION}`;
 const PAGE_CACHE = `pdf-toolbox-page-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `pdf-toolbox-runtime-${CACHE_VERSION}`;
@@ -12,6 +12,7 @@ const STATIC_ASSETS = [
     './img-to-pdf.html',
     './watermark.html',
     './privacy.html',
+    './js/site-config.js',
     './css/style.css',
     './js/common.js',
     './js/index.js',
