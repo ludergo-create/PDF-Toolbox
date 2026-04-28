@@ -325,22 +325,25 @@ function registerServiceWorker() {
 }
 
 function renderIcpBadge() {
-    const config = window.SITE_CONFIG || {};
-    const icp = (config.icpNumber || '').trim();
+    var config = window.SITE_CONFIG || {};
+    var icp = (config.icpNumber || '').trim();
     if (!icp) return;
 
-    const footer = document.querySelector('.footer p');
+    var footer = document.querySelector('.footer');
     if (!footer) return;
 
-    const sep = document.createTextNode(' | ');
-    const link = document.createElement('a');
+    var line = document.createElement('p');
+    line.style.cssText = 'font-size:12px; margin-top:6px;';
+
+    var link = document.createElement('a');
     link.href = 'https://beian.miit.gov.cn/';
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
+    link.style.cssText = 'text-decoration:none; color:var(--text-dim);';
     link.textContent = icp;
 
-    footer.appendChild(sep);
-    footer.appendChild(link);
+    line.appendChild(link);
+    footer.appendChild(line);
 }
 
 // 页面加载完成后初始化主题
