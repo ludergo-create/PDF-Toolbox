@@ -39,10 +39,12 @@ function initMobileNav() {
     const sidebar = document.querySelector('.sidebar');
     if (!sidebar || sidebar.querySelector('.mobile-menu-toggle')) return;
 
+    // 抽屉背景遮罩
     const overlay = document.createElement('div');
     overlay.className = 'mobile-nav-overlay';
     overlay.setAttribute('aria-hidden', 'true');
 
+    // 汉堡按钮
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'mobile-menu-toggle';
@@ -50,12 +52,28 @@ function initMobileNav() {
     btn.setAttribute('aria-expanded', 'false');
     btn.innerText = '☰';
 
+    // 抽屉容器（动画只作用于这一个元素）
+    const drawer = document.createElement('div');
+    drawer.className = 'mobile-drawer';
+    drawer.innerHTML = '<div class="mobile-drawer-title">PDF 工具箱</div>';
+
+    // 把 nav-btn 和 theme-toggle 移入抽屉
+    const navBtns = sidebar.querySelectorAll('.nav-btn');
+    const themeBtn = sidebar.querySelector('.theme-toggle');
+    navBtns.forEach(b => drawer.appendChild(b));
+    if (themeBtn) drawer.appendChild(themeBtn);
+
+    sidebar.appendChild(btn);
+    document.body.appendChild(drawer);
+    document.body.appendChild(overlay);
+
     let scrollY = 0;
 
     function setMobileNavOpen(isOpen) {
-        sidebar.classList.toggle('nav-open', isOpen);
+        drawer.classList.toggle('open', isOpen);
         overlay.classList.toggle('is-visible', isOpen);
         document.body.classList.toggle('mobile-nav-open', isOpen);
+        btn.classList.toggle('active', isOpen);
         btn.setAttribute('aria-expanded', String(isOpen));
         btn.innerText = isOpen ? '×' : '☰';
         btn.setAttribute('aria-label', isOpen ? '关闭工具导航' : '打开工具导航');
@@ -74,24 +92,19 @@ function initMobileNav() {
     }
 
     btn.addEventListener('click', () => {
-        setMobileNavOpen(!sidebar.classList.contains('nav-open'));
+        setMobileNavOpen(!drawer.classList.contains('open'));
     });
 
     overlay.addEventListener('click', () => setMobileNavOpen(false));
 
-    sidebar.querySelectorAll('.nav-btn').forEach((link) => {
-        link.addEventListener('click', () => {
-            setMobileNavOpen(false);
-        });
+    drawer.querySelectorAll('.nav-btn').forEach(link => {
+        link.addEventListener('click', () => setMobileNavOpen(false));
     });
 
     document.addEventListener('keydown', (event) => {
         if (event.key !== 'Escape') return;
         setMobileNavOpen(false);
     });
-
-    sidebar.appendChild(btn);
-    document.body.appendChild(overlay);
 }
 
 // 页面加载完成后初始化主题

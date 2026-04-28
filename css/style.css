@@ -262,10 +262,10 @@ input[type="number"] {
         flex: 0 0 auto;
         order: 0;
         z-index: 113;
-        transition: transform 0.2s ease, background-color 0.2s, color 0.2s, border-color 0.2s, top 0.26s cubic-bezier(.2,.8,.2,1), left 0.26s cubic-bezier(.2,.8,.2,1);
+        transition: background-color 0.2s, color 0.2s, border-color 0.2s;
     }
 
-    .sidebar.nav-open .mobile-menu-toggle {
+    .mobile-menu-toggle.active {
         position: fixed;
         top: 18px;
         left: calc(min(72vw, 280px) - 48px);
@@ -273,7 +273,6 @@ input[type="number"] {
         background: transparent;
         border-color: transparent;
         color: var(--text-dim);
-        transform: none;
         font-size: 26px;
         font-weight: 300;
     }
@@ -290,21 +289,66 @@ input[type="number"] {
         flex: 0 0 auto;
     }
     .divider, .nav-label, .spacer { display: none; }
-    
-    .nav-btn {
-        display: block;
-        margin: 0 18px 8px;
-        text-align: left;
+
+    .mobile-drawer {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: min(72vw, 280px);
+        height: 100dvh;
+        background: var(--bg-surface);
+        border-right: 1px solid var(--border);
+        box-shadow: 14px 0 34px rgba(0,0,0,0.18);
+        z-index: 111;
+        transform: translateX(-100%);
+        transition: transform 0.26s cubic-bezier(.2,.8,.2,1);
+        display: flex;
+        flex-direction: column;
+        padding: 76px 18px 24px;
+        gap: 6px;
+        overflow-y: auto;
+    }
+
+    .mobile-drawer.open {
+        transform: translateX(0);
+    }
+
+    .mobile-drawer-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: var(--text-main);
+        margin-bottom: 12px;
+        line-height: 1;
+    }
+
+    .mobile-drawer .nav-btn,
+    .mobile-drawer .theme-toggle {
+        position: static;
+        left: auto;
+        top: auto;
+        width: 100%;
+        margin: 0 0 4px;
         padding: 12px 14px;
-        width: calc(100% - 36px);
         font-size: 14px;
-        white-space: nowrap;
-        flex: 0 0 auto;
+        font-weight: 600;
         border-radius: 10px;
         background: var(--card);
-        order: 10;
-        font-weight: 600;
+        color: var(--text-sub);
+        text-align: left;
+        white-space: nowrap;
         box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        transform: none;
+        opacity: 1;
+        pointer-events: auto;
+        transition: background-color 0.2s, color 0.2s;
+        z-index: auto;
+    }
+
+    .mobile-drawer .theme-toggle {
+        margin-top: auto;
+        border-style: dashed;
+        color: var(--text-main);
+        text-align: center;
     }
 
     .nav-btn::before {
@@ -321,65 +365,6 @@ input[type="number"] {
     #nav-pdf2img::before { content: "▧"; }
     #nav-img2pdf::before { content: "▤"; }
     #nav-watermark::before { content: "©"; }
-
-    .sidebar .nav-btn,
-    .sidebar .theme-toggle {
-        position: fixed;
-        left: 18px;
-        margin: 0;
-        width: calc(min(72vw, 280px) - 36px);
-        z-index: 112;
-        transform: translateX(-48px);
-        transition: transform 0.22s cubic-bezier(.2,.8,.2,1), opacity 0.15s ease;
-        opacity: 0;
-        pointer-events: none;
-    }
-
-    .sidebar::after {
-        content: "PDF 工具箱";
-        position: fixed;
-        left: 0;
-        top: 0;
-        width: min(72vw, 280px);
-        height: 100dvh;
-        padding: 76px 18px 0;
-        background: var(--bg-surface);
-        border-right: 1px solid var(--border);
-        box-shadow: 14px 0 34px rgba(0,0,0,0.18);
-        color: var(--text-main);
-        font-size: 18px;
-        font-weight: bold;
-        line-height: 1;
-        transform: translateX(-100%);
-        transition: transform 0.26s cubic-bezier(.2,.8,.2,1);
-        z-index: 111;
-    }
-
-    .sidebar.nav-open::after {
-        transform: translateX(0);
-    }
-
-    .sidebar.nav-open .nav-btn,
-    .sidebar.nav-open .theme-toggle {
-        transform: translateX(0);
-        opacity: 1;
-        pointer-events: auto;
-    }
-
-    .sidebar #nav-home { top: 114px; }
-    .sidebar #nav-merge { top: 158px; }
-    .sidebar #nav-split { top: 202px; }
-    .sidebar #nav-edit { top: 246px; }
-    .sidebar #nav-pdf2img { top: 290px; }
-    .sidebar #nav-img2pdf { top: 334px; }
-    .sidebar #nav-watermark { top: 378px; }
-    .sidebar .theme-toggle { top: 436px; }
-
-    .sidebar.nav-open .theme-toggle {
-        border-style: dashed;
-        color: var(--text-main);
-        background: var(--card);
-    }
 
     .mobile-nav-overlay {
         display: block;
