@@ -6,10 +6,10 @@
     "scripts": {
         "lint": "npm run lint:js && npm run lint:inline",
         "lint:all": "npm run lint && npm run format:check",
-        "lint:js": "eslint \"js/**/*.js\" \"scripts/**/*.cjs\"",
+        "lint:js": "eslint \"js/**/*.js\" \"scripts/**/*.cjs\" \"sw.js\"",
         "lint:inline": "node scripts/lint-inline-scripts.cjs",
-        "format": "prettier --write \"*.html\" \"css/**/*.css\" \"js/**/*.js\" \"README.md\"",
-        "format:check": "prettier --check \"*.html\" \"css/**/*.css\" \"js/**/*.js\" \"README.md\""
+        "format": "prettier --write \"*.html\" \"css/**/*.css\" \"js/**/*.js\" \"sw.js\" \"README.md\"",
+        "format:check": "prettier --check \"*.html\" \"css/**/*.css\" \"js/**/*.js\" \"sw.js\" \"README.md\""
     },
     "devDependencies": {
         "eslint": "^9.26.0",

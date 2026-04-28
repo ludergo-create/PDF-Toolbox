@@ -16,6 +16,25 @@
 
 建议部署到静态服务器后访问；直接用 `file://` 打开时，部分浏览器可能限制 Worker 行为。
 
+## 性能优化说明
+
+- 已内置页面预取（hover/touch/focus + 空闲时预取）与 Service Worker 缓存（`sw.js`）。
+- Service Worker 仅在 `https://` 或 `localhost` 下生效，用于加速二次访问和页面切换。
+
+建议服务器缓存策略（以 Nginx 为例）：
+
+```nginx
+# HTML 短缓存，兼顾更新速度与切页性能
+location ~* \.html$ {
+    add_header Cache-Control "public, max-age=300, stale-while-revalidate=30";
+}
+
+# 静态资源长缓存（文件名变更时自动刷新）
+location ~* \.(css|js|woff2?|png|jpg|jpeg|svg|webp)$ {
+    add_header Cache-Control "public, max-age=31536000, immutable";
+}
+```
+
 ## 开发规范
 
 以下工具仅用于本地代码质量检查，不会上传或处理用户 PDF 文件，不影响隐私承诺。

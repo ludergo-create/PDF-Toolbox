@@ -216,10 +216,121 @@ function initMobileNav() {
     window.addEventListener('resize', applyLayout);
 }
 
+const PREFETCHED_URLS = new Set();
+
+function supportsLinkPrefetch() {
+    const link = document.createElement('link');
+    return !!(link.relList && link.relList.supports && link.relList.supports('prefetch'));
+}
+
+function prefetchUrl(url, asType) {
+    if (!supportsLinkPrefetch()) return;
+
+    const normalized = url.href.split('#')[0];
+    if (PREFETCHED_URLS.has(normalized)) return;
+    PREFETCHED_URLS.add(normalized);
+
+    const link = document.createElement('link');
+    link.rel = 'prefetch';
+    link.href = normalized;
+    if (asType) link.as = asType;
+    document.head.appendChild(link);
+}
+
+function getPrefetchAssetList(pathname) {
+    if (pathname.endsWith('/merge.html')) {
+        return ['js/vendor/pdf-lib.min.js', 'js/vendor/Sortable.min.js'];
+    }
+    if (pathname.endsWith('/split.html')) {
+        return ['js/vendor/pdf-lib.min.js', 'js/vendor/jszip.min.js'];
+    }
+    if (pathname.endsWith('/edit-pages.html')) {
+        return ['js/vendor/pdf.min.js', 'js/vendor/pdf.worker.min.js', 'js/vendor/pdf-lib.min.js'];
+    }
+    if (pathname.endsWith('/pdf-to-img.html')) {
+        return ['js/vendor/pdf.min.js', 'js/vendor/pdf.worker.min.js', 'js/vendor/jszip.min.js'];
+    }
+    if (pathname.endsWith('/img-to-pdf.html')) {
+        return ['js/vendor/pdf-lib.min.js', 'js/vendor/Sortable.min.js'];
+    }
+    if (pathname.endsWith('/watermark.html')) {
+        return ['js/vendor/pdf.min.js', 'js/vendor/pdf.worker.min.js', 'js/vendor/pdf-lib.min.js'];
+    }
+    return [];
+}
+
+function prefetchTargetPage(url) {
+    if (url.origin !== window.location.origin) return;
+    if (url.pathname === window.location.pathname) return;
+
+    prefetchUrl(url, 'document');
+    const assets = getPrefetchAssetList(url.pathname);
+    assets.forEach((assetPath) => {
+        prefetchUrl(new URL(assetPath, window.location.href), 'script');
+    });
+}
+
+function parsePrefetchCandidate(href) {
+    if (!href || href.startsWith('#') || href.startsWith('javascript:')) return null;
+
+    try {
+        const url = new URL(href, window.location.href);
+        if (url.origin !== window.location.origin) return null;
+        if (!/\.html$/i.test(url.pathname)) return null;
+        return url;
+    } catch {
+        return null;
+    }
+}
+
+function initNavigationPrefetch() {
+    const linkEls = Array.from(document.querySelectorAll('a.nav-btn[href], a.tool-card[href]'));
+    if (linkEls.length === 0) return;
+
+    const candidates = [];
+    linkEls.forEach((linkEl) => {
+        const url = parsePrefetchCandidate(linkEl.getAttribute('href'));
+        if (!url) return;
+        candidates.push(url);
+
+        const prefetchFromEvent = () => prefetchTargetPage(url);
+        linkEl.addEventListener('mouseenter', prefetchFromEvent, { once: true });
+        linkEl.addEventListener('touchstart', prefetchFromEvent, { once: true, passive: true });
+        linkEl.addEventListener('focus', prefetchFromEvent, { once: true });
+    });
+
+    const schedule =
+        window.requestIdleCallback ||
+        ((cb) =>
+            window.setTimeout(() => {
+                cb({ didTimeout: false, timeRemaining: () => 0 });
+            }, 300));
+
+    schedule(() => {
+        const currentPath = window.location.pathname;
+        const idleTargets = candidates.filter((url) => url.pathname !== currentPath).slice(0, 2);
+        idleTargets.forEach(prefetchTargetPage);
+    });
+}
+
+function registerServiceWorker() {
+    if (!('serviceWorker' in navigator)) return;
+    if (!window.isSecureContext) return;
+
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => {
+            // 保持静默失败，避免影响核心功能
+        });
+    });
+}
+
 // 页面加载完成后初始化主题
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     bindThemeToggleButton();
     initMobileNav();
     bindPrivacyNoticeLinks();
+    initNavigationPrefetch();
 });
+
+registerServiceWorker();

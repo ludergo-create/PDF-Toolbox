@@ -14,12 +14,6 @@
         />
 
         <link rel="stylesheet" href="css/style.css" />
-        <script src="js/common.js"></script>
-        <script src="js/vendor/pdf.min.js"></script>
-        <script src="js/vendor/jszip.min.js"></script>
-        <script>
-            pdfjsLib.GlobalWorkerOptions.workerSrc = 'js/vendor/pdf.worker.min.js';
-        </script>
         <style>
             #nav-pdf2img {
                 background-color: var(--primary-soft);
@@ -130,7 +124,12 @@
         <!-- Hidden canvas for rendering -->
         <canvas id="renderCanvas" class="u-hidden"></canvas>
 
+        <script src="js/common.js"></script>
+        <script src="js/vendor/pdf.min.js"></script>
+        <script src="js/vendor/jszip.min.js"></script>
         <script>
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'js/vendor/pdf.worker.min.js';
+
             let pdfFileObj = null;
             const pdfFileInput = document.getElementById('pdfFileInput');
             const pdfResetBtn = document.getElementById('pdfResetBtn');

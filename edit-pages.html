@@ -14,12 +14,6 @@
         />
 
         <link rel="stylesheet" href="css/style.css" />
-        <script src="js/common.js"></script>
-        <script src="js/vendor/pdf.min.js"></script>
-        <script>
-            pdfjsLib.GlobalWorkerOptions.workerSrc = 'js/vendor/pdf.worker.min.js';
-        </script>
-        <script src="js/vendor/pdf-lib.min.js"></script>
         <style>
             #nav-edit {
                 background-color: var(--primary-soft);
@@ -193,7 +187,12 @@
             </div>
         </div>
 
+        <script src="js/common.js"></script>
+        <script src="js/vendor/pdf.min.js"></script>
+        <script src="js/vendor/pdf-lib.min.js"></script>
         <script>
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'js/vendor/pdf.worker.min.js';
+
             let editFileObj = null;
             let pdfTotalPages = 0;
             let pagesState = []; // [{deleted: false, rotation: 0}]
