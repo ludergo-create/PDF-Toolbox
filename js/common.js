@@ -324,6 +324,25 @@ function registerServiceWorker() {
     });
 }
 
+function renderIcpBadge() {
+    const config = window.SITE_CONFIG || {};
+    const icp = (config.icpNumber || '').trim();
+    if (!icp) return;
+
+    const footer = document.querySelector('.footer p');
+    if (!footer) return;
+
+    const sep = document.createTextNode(' | ');
+    const link = document.createElement('a');
+    link.href = 'https://beian.miit.gov.cn/';
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = icp;
+
+    footer.appendChild(sep);
+    footer.appendChild(link);
+}
+
 // 页面加载完成后初始化主题
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
@@ -331,6 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initMobileNav();
     bindPrivacyNoticeLinks();
     initNavigationPrefetch();
+    renderIcpBadge();
 });
 
 registerServiceWorker();
