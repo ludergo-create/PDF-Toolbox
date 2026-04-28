@@ -108,35 +108,10 @@ input[type="number"] {
 .tool-card h3 { font-size: 18px; margin-bottom: 8px; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
 .tool-card p { font-size: 13px; color: var(--text-sub); line-height: 1.5; margin: 0; }
 .tool-icon { font-size: 24px; }
-
-#homeGrid {
-    grid-template-columns: 1fr;
-    max-width: 600px;
-}
-#homeGrid.compact {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
-    max-width: none;
-}
-#homeGrid.compact .tool-card {
-    padding: 28px 20px;
-    min-height: auto;
-}
-#homeGrid.compact .tool-card h3 {
-    font-size: 17px;
-    margin-bottom: 0;
-    justify-content: center;
-    text-align: center;
-}
-#homeGrid.compact .tool-card .tool-icon {
-    font-size: 28px;
-}
-#homeGrid.compact .tool-card p {
-    display: none;
-}
 .layout-toggle {
     white-space: nowrap;
     flex-shrink: 0;
+    display: none;
 }
 
 /* 列表 & 拆分表单样式 */
@@ -680,6 +655,34 @@ input[type="number"] {
         min-height: 300px;
     }
     
+    .layout-toggle { display: inline-block; }
+
+    #homeGrid {
+        grid-template-columns: 1fr;
+        max-width: 600px;
+    }
+    #homeGrid.compact {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        max-width: none;
+    }
+    #homeGrid.compact .tool-card {
+        padding: 28px 20px;
+        min-height: auto;
+    }
+    #homeGrid.compact .tool-card h3 {
+        font-size: 17px;
+        margin-bottom: 0;
+        justify-content: center;
+        text-align: center;
+    }
+    #homeGrid.compact .tool-card .tool-icon {
+        font-size: 28px;
+    }
+    #homeGrid.compact .tool-card p {
+        display: none;
+    }
+
     .hide-on-mobile { display: none !important; }
 }
 
