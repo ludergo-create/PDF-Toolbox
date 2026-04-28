@@ -1241,7 +1241,7 @@ input[type='number'] {
         content: '▤';
     }
     #nav-watermark::before {
-        content: '🏷️';
+        content: '💧';
     }
 
     .mobile-nav-overlay {
