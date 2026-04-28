@@ -247,14 +247,11 @@ input[type="number"] {
     .logo-icon { font-size: 22px; }
 
     .mobile-menu-toggle {
-        position: fixed;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         width: 38px;
         height: 38px;
-        top: 12px;
-        left: 14px;
         border: 1px solid var(--border);
         border-radius: 10px;
         background: var(--card);
@@ -262,11 +259,14 @@ input[type="number"] {
         cursor: pointer;
         font-size: 22px;
         line-height: 1;
+        flex: 0 0 auto;
+        order: 0;
         z-index: 114;
-        transition: left 0.26s cubic-bezier(.2,.8,.2,1), background-color 0.2s, color 0.2s, border-color 0.2s, font-size 0.2s;
+        transition: background-color 0.2s, color 0.2s, border-color 0.2s;
     }
 
     .mobile-menu-toggle.active {
+        position: fixed;
         top: 18px;
         left: calc(min(72vw, 280px) - 48px);
         z-index: 115;
