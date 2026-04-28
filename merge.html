@@ -225,10 +225,11 @@
 
                     status.innerText = '正在生成最终文件...';
                     const pdfBytes = await mergedPdf.save();
-                    triggerDownload(
-                        pdfBytes,
-                        `${mergeFilesMap.values().next().value.name.replace('.pdf', '')}_合并.pdf`
+                    const firstOrderedFile = mergeFilesMap.get(
+                        orderedItems[0].getAttribute('data-id')
                     );
+                    const baseName = firstOrderedFile.name.replace(/\.pdf$/i, '');
+                    triggerDownload(pdfBytes, `${baseName}_合并.pdf`);
 
                     status.innerText = '✅ 下载合并后的 PDF';
                     status.style.color = 'var(--success)';

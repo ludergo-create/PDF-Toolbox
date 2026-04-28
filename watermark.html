@@ -420,6 +420,10 @@
             const modalClearCustomBtn = document.getElementById('modalClearCustomBtn');
             const modalCancelBtn = document.getElementById('modalCancelBtn');
             const modalSaveCustomBtn = document.getElementById('modalSaveCustomBtn');
+            const wmModalFocus = createModalFocusManager(
+                document.getElementById('wmModal'),
+                closeModal
+            );
 
             wmFileInput.addEventListener('change', handleWmFileAdded);
             wmResetBtn.addEventListener('click', resetWmFile);
@@ -807,6 +811,7 @@
 
                 updateModalPreview();
                 document.getElementById('wmModal').style.display = 'flex';
+                wmModalFocus.open();
                 setTimeout(() => fitModalToWindow(), 10);
             }
 
@@ -828,6 +833,7 @@
 
             function closeModal() {
                 document.getElementById('wmModal').style.display = 'none';
+                wmModalFocus.close();
             }
 
             function saveModalCustom() {

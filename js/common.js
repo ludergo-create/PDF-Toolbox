@@ -1,4 +1,4 @@
-/* exported generateId, isPdfFile, isImageFile, triggerDownload */
+/* exported generateId, isPdfFile, isImageFile, triggerDownload, createModalFocusManager */
 
 // ================= 全局基础逻辑 =================
 
@@ -373,6 +373,73 @@ function renderIcpBadge() {
 
     line.appendChild(link);
     footer.appendChild(line);
+}
+
+function getFocusableElements(container) {
+    const selector = [
+        'a[href]',
+        'button:not([disabled])',
+        'input:not([disabled])',
+        'select:not([disabled])',
+        'textarea:not([disabled])',
+        '[tabindex]:not([tabindex="-1"])',
+    ].join(',');
+
+    return Array.from(container.querySelectorAll(selector)).filter((el) => {
+        return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
+    });
+}
+
+function createModalFocusManager(modal, onEscape) {
+    let previousFocus = null;
+
+    if (!modal.hasAttribute('tabindex')) {
+        modal.setAttribute('tabindex', '-1');
+    }
+
+    modal.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            onEscape();
+            return;
+        }
+
+        if (event.key !== 'Tab') return;
+
+        const focusable = getFocusableElements(modal);
+        if (focusable.length === 0) {
+            event.preventDefault();
+            modal.focus({ preventScroll: true });
+            return;
+        }
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus({ preventScroll: true });
+        } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus({ preventScroll: true });
+        }
+    });
+
+    return {
+        open() {
+            previousFocus = document.activeElement;
+            window.requestAnimationFrame(() => {
+                const focusable = getFocusableElements(modal);
+                const first = focusable[0] || modal;
+                first.focus({ preventScroll: true });
+            });
+        },
+        close() {
+            if (previousFocus && document.contains(previousFocus)) {
+                previousFocus.focus({ preventScroll: true });
+            }
+            previousFocus = null;
+        },
+    };
 }
 
 const optionalSiteConfigReady = loadOptionalSiteConfig();

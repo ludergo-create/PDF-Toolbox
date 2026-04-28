@@ -216,6 +216,10 @@
             const previewRotateLeftBtn = document.getElementById('previewRotateLeftBtn');
             const previewRotateRightBtn = document.getElementById('previewRotateRightBtn');
             const previewModalDelBtn = document.getElementById('previewModalDelBtn');
+            const previewModalFocus = createModalFocusManager(
+                document.getElementById('previewModal'),
+                closePreviewModal
+            );
 
             editFileInput.addEventListener('change', handleEditFileAdded);
             editResetBtn.addEventListener('click', resetEditFile);
@@ -305,6 +309,7 @@
 
                 updatePreviewModalState();
                 document.getElementById('previewModal').style.display = 'flex';
+                previewModalFocus.open();
                 setTimeout(() => fitPreviewModalToWindow(), 10);
             }
 
@@ -331,6 +336,7 @@
 
             function closePreviewModal() {
                 document.getElementById('previewModal').style.display = 'none';
+                previewModalFocus.close();
             }
 
             function normalizePageRotation(angle) {

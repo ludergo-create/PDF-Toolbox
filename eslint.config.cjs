@@ -37,6 +37,7 @@ module.exports = [
                 isJpegFile: 'readonly',
                 isPngFile: 'readonly',
                 triggerDownload: 'readonly',
+                createModalFocusManager: 'readonly',
                 safeStorageGet: 'readonly',
                 safeStorageSet: 'readonly'
             }
