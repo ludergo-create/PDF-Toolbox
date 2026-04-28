@@ -75,7 +75,7 @@
 
                     <div style="font-size: 12px; color: var(--text-dim); margin-top: -16px; margin-bottom: 20px; text-align: center;">建议单文件 &lt; 100MB，超大文件可能导致浏览器卡顿。</div>
 
-                    <div style="background-color: var(--bg-surface); border-radius: 12px; padding: 10px 20px;">
+                    <div class="settings-panel" style="background-color: var(--bg-surface); border-radius: 12px; padding: 10px 20px;">
                         <div style="font-size: 12px; color: var(--text-dim); margin-bottom: 8px;">拆分模式</div>
                         
                         <div class="mode-row">
@@ -105,7 +105,7 @@
                     </div>
                 </div>
 
-                <div class="card" style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div class="card action-card" style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <span style="color: var(--text-sub); font-size: 13px;" id="splitStatusText">未加载文件</span>
                     <button class="btn btn-run btn-run-danger" id="runSplitBtn" onclick="runSplit()" disabled>执行拆分</button>
                 </div>

@@ -35,7 +35,53 @@ function triggerDownload(bytes, filename, mimeType = 'application/pdf') {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+function initMobileNav() {
+    const sidebar = document.querySelector('.sidebar');
+    if (!sidebar || sidebar.querySelector('.mobile-menu-toggle')) return;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'mobile-nav-overlay';
+    overlay.setAttribute('aria-hidden', 'true');
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'mobile-menu-toggle';
+    btn.setAttribute('aria-label', '打开工具导航');
+    btn.setAttribute('aria-expanded', 'false');
+    btn.innerText = '☰';
+
+    function setMobileNavOpen(isOpen) {
+        sidebar.classList.toggle('nav-open', isOpen);
+        overlay.classList.toggle('is-visible', isOpen);
+        document.body.classList.toggle('mobile-nav-open', isOpen);
+        btn.setAttribute('aria-expanded', String(isOpen));
+        btn.innerText = isOpen ? '×' : '☰';
+        btn.setAttribute('aria-label', isOpen ? '关闭工具导航' : '打开工具导航');
+    }
+
+    btn.addEventListener('click', () => {
+        setMobileNavOpen(!sidebar.classList.contains('nav-open'));
+    });
+
+    overlay.addEventListener('click', () => setMobileNavOpen(false));
+
+    sidebar.querySelectorAll('.nav-btn').forEach((link) => {
+        link.addEventListener('click', () => {
+            setMobileNavOpen(false);
+        });
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape') return;
+        setMobileNavOpen(false);
+    });
+
+    sidebar.appendChild(btn);
+    document.body.appendChild(overlay);
+}
+
 // 页面加载完成后初始化主题
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
+    initMobileNav();
 });

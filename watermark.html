@@ -78,8 +78,8 @@
                         </div>
                     </div>
 
-                    <div style="background-color: var(--bg-surface); border-radius: 12px; padding: 16px 20px;">
-                        <div style="font-size: 13px; color: var(--primary); margin-bottom: 12px; font-weight: bold;">💡 提示：支持中英文混合。双击下方任意单页，即可为该页独立定制专属水印！</div>
+                    <div class="settings-panel watermark-settings" style="background-color: var(--bg-surface); border-radius: 12px; padding: 16px 20px;">
+                        <div class="wm-tip" style="font-size: 13px; color: var(--primary); margin-bottom: 12px; font-weight: bold;">💡 提示：支持中英文混合。双击下方任意单页，即可为该页独立定制专属水印！</div>
                         
                         <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end;">
                             <div class="setting-group" style="flex: 2; min-width: 200px;">
@@ -140,7 +140,7 @@
                     <div id="wmPagesGrid" class="pdf-page-grid" style="display: none; margin-top: 20px;"></div>
                 </div>
 
-                <div class="card" style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div class="card action-card" style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <span style="color: var(--text-sub); font-size: 13px;" id="wmStatusText">未加载文件</span>
                     <button class="btn btn-run" id="runWmBtn" onclick="runWatermark()" disabled>添加水印并保存</button>
                 </div>

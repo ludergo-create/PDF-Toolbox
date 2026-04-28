@@ -74,7 +74,7 @@
                         </div>
                     </div>
 
-                    <div style="background-color: var(--bg-surface); border-radius: 12px; padding: 10px 20px;">
+                    <div class="settings-panel" style="background-color: var(--bg-surface); border-radius: 12px; padding: 10px 20px;">
                         
                         <div class="mode-row" style="align-items: flex-start; flex-direction: column;">
                             <label style="font-weight: bold; font-size: 14px; margin-bottom: 8px;">导出格式</label>
@@ -95,7 +95,7 @@
                     </div>
                 </div>
 
-                <div class="card" style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div class="card action-card" style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <span style="color: var(--text-sub); font-size: 13px;" id="pdfStatusText">未加载文件</span>
                     <button class="btn btn-run" id="runPdfBtn" onclick="runPdfToImg()" disabled>开始转换并打包</button>
                 </div>

@@ -75,7 +75,7 @@
                     </div>
 
                     <!-- 全局操作栏 -->
-                    <div id="globalToolbar" style="display:none; background-color: var(--bg-surface); border-radius: 12px; padding: 10px 20px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                    <div id="globalToolbar" class="global-toolbar" style="display:none; background-color: var(--bg-surface); border-radius: 12px; padding: 10px 20px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
                         <span style="font-size: 13px; font-weight: bold;">全局操作：</span>
                         <div style="display: flex; gap: 8px;">
                             <button class="btn btn-outline" onclick="rotateAll(-90)">全体 ↺ 左转</button>
@@ -89,7 +89,7 @@
 
                 </div>
 
-                <div class="card" style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div class="card action-card" style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <span style="color: var(--text-sub); font-size: 13px;" id="editStatusText">未加载文件</span>
                     <button class="btn btn-run" id="runEditBtn" onclick="runEdit()" disabled>应用修改并保存</button>
                 </div>
