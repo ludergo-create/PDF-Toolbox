@@ -126,6 +126,7 @@ const NAV_ITEMS = [
     { href: 'img-to-pdf.html', id: 'nav-img2pdf', text: '图片转 PDF' },
     { label: '安全与保护', type: 'section' },
     { href: 'watermark.html', id: 'nav-watermark', text: 'PDF 加水印' },
+    { href: 'privacy.html', id: 'nav-privacy', text: '隐私说明' },
 ];
 
 function renderSidebar() {
@@ -228,24 +229,10 @@ function showFileLoaded(dropZoneId, fileInfoId, show) {
     if (fileInfo) fileInfo.style.display = show ? 'flex' : 'none';
 }
 
-function showPrivacyNotice() {
-    alert('该工具纯前端本地处理，您的文件不会上传至任何服务器。');
-}
-
 function bindThemeToggleButton() {
     const btn = document.getElementById('themeBtn');
     if (!btn) return;
     btn.addEventListener('click', toggleTheme);
-}
-
-function bindPrivacyNoticeLinks() {
-    const links = document.querySelectorAll('.privacy-link');
-    links.forEach((link) => {
-        link.addEventListener('click', (event) => {
-            event.preventDefault();
-            showPrivacyNotice();
-        });
-    });
 }
 
 function initMobileNav() {
@@ -647,7 +634,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     bindThemeToggleButton();
     initMobileNav();
-    bindPrivacyNoticeLinks();
     initNavigationPrefetch();
     updateFooterYear();
     optionalSiteConfigReady.then(renderIcpBadge);

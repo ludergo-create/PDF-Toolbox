@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>隐私说明 - PDF 工具箱</title>
+        <meta
+            name="description"
+            content="PDF 工具箱隐私说明：所有 PDF 和图片处理均在浏览器本地完成，文件不会上传服务器。"
+        />
+        <link
+            rel="icon"
+            href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.8em' font-size='100' fill='%236C63FF'>◈</text></svg>"
+        />
+
+        <link rel="stylesheet" href="css/style.css" />
+        <style>
+            #nav-privacy {
+                background-color: var(--primary-soft);
+                color: var(--primary);
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="trust-banner">
+            🔒 纯本地处理：所有操作均在浏览器内完成，文件绝不上传服务器，保护您的隐私安全。
+        </div>
+
+        <div class="app-body">
+            <div class="sidebar"></div>
+
+            <div class="main-content">
+                <div class="page-view">
+                    <div class="header">
+                        <h1>隐私说明</h1>
+                        <span class="badge badge-primary">本地处理，不上传文件</span>
+                    </div>
+
+                    <div class="card privacy-card">
+                        <h2>核心承诺</h2>
+                        <p>
+                            PDF 工具箱是纯前端工具。您选择的
+                            PDF、图片和生成的结果文件都在当前浏览器内处理，
+                            本站不提供文件上传接口，也不会把您的文件内容发送到服务器。
+                        </p>
+                    </div>
+
+                    <div class="card privacy-card">
+                        <h2>文件如何被处理</h2>
+                        <ul class="privacy-list">
+                            <li>
+                                合并、拆分、旋转、删除、水印和格式转换都通过浏览器本地 JavaScript
+                                完成。
+                            </li>
+                            <li>处理过程中会临时读取文件内容到浏览器内存，用于生成结果文件。</li>
+                            <li>
+                                关闭页面或刷新页面后，已选择的文件状态会丢失，本站不会替您保存源文件或结果文件。
+                            </li>
+                            <li>
+                                下载动作由浏览器完成，生成文件保存在哪里取决于您的浏览器下载设置。
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="card privacy-card">
+                        <h2>本地存储与缓存</h2>
+                        <ul class="privacy-list">
+                            <li>
+                                主题偏好可能保存在浏览器的 <code>localStorage</code>
+                                中，用于记住深色或浅色模式。
+                            </li>
+                            <li>
+                                Service Worker 和浏览器缓存只用于缓存 HTML、CSS、JS 等站点静态资源。
+                            </li>
+                            <li>缓存不会保存您选择的 PDF、图片、水印文本或生成后的文件内容。</li>
+                            <li>如需完全清除站点状态，可在浏览器设置中删除本站点数据。</li>
+                        </ul>
+                    </div>
+
+                    <div class="card privacy-card">
+                        <h2>第三方依赖</h2>
+                        <p>
+                            本站使用 PDF.js、pdf-lib、JSZip 和 SortableJS 等开源前端库完成 PDF
+                            渲染、编辑、
+                            打包和拖拽排序。这些运行时文件已随项目本地托管，页面不需要从第三方 CDN
+                            加载核心脚本。
+                        </p>
+                    </div>
+
+                    <div class="card privacy-card">
+                        <h2>可能产生的网络请求</h2>
+                        <ul class="privacy-list">
+                            <li>浏览器会请求本站的页面、样式、脚本和 Service Worker 文件。</li>
+                            <li>
+                                如果站点配置了 ICP
+                                备案号，页面会显示备案链接，点击后会跳转到工信部备案系统。
+                            </li>
+                            <li>本站不会主动上传或分析您处理的文件。</li>
+                        </ul>
+                    </div>
+
+                    <div class="card privacy-card">
+                        <h2>使用建议</h2>
+                        <ul class="privacy-list">
+                            <li>处理特别敏感的文件时，建议在可信设备和可信浏览器环境中使用。</li>
+                            <li>请确认浏览器下载目录和系统临时文件目录的安全性。</li>
+                            <li>共享设备上使用后，建议关闭页面并清理浏览器下载记录。</li>
+                        </ul>
+                    </div>
+
+                    <div class="u-flex-grow"></div>
+                    <div class="footer">
+                        <p>
+                            PDF 工具箱 © 2026 |
+                            <a href="index.html">返回首页</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="js/common.js"></script>
+    </body>
+</html>

@@ -275,6 +275,24 @@ input[type='number'] {
 .card-stretch {
     flex-grow: 1;
 }
+.privacy-card {
+    gap: 10px;
+    line-height: 1.8;
+}
+.privacy-card h2 {
+    font-size: 18px;
+}
+.privacy-card p,
+.privacy-list {
+    color: var(--text-sub);
+    font-size: 14px;
+}
+.privacy-list {
+    padding-left: 20px;
+}
+.privacy-list li + li {
+    margin-top: 6px;
+}
 .action-card {
     flex-direction: row;
     justify-content: space-between;
