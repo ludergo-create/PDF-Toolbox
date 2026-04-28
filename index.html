@@ -54,7 +54,7 @@
                 <div class="header">
                     <h1>PDF 工具箱</h1>
                     <span class="badge badge-primary">安全、快速、全免费</span>
-                    <button class="btn btn-outline layout-toggle" id="layoutToggle" onclick="toggleLayout()" style="margin-left: auto; font-size: 12px;" title="切换卡片布局">☰ 紧凑</button>
+                    <button class="btn btn-outline layout-toggle" id="layoutToggle" onclick="toggleLayout()" style="margin-left: auto; font-size: 12px;" title="切换卡片布局">☷ 双列</button>
                 </div>
 
                 <div class="home-grid" id="homeGrid">
@@ -99,13 +99,13 @@ function toggleLayout() {
     const grid = document.getElementById('homeGrid');
     const btn = document.getElementById('layoutToggle');
     const compact = grid.classList.toggle('compact');
-    btn.innerHTML = compact ? '☷ 详细' : '☰ 紧凑';
+    btn.innerHTML = compact ? '☰ 单列' : '☷ 双列';
     localStorage.setItem('homeLayout', compact ? 'compact' : 'full');
 }
 document.addEventListener('DOMContentLoaded', () => {
     if (localStorage.getItem('homeLayout') === 'compact') {
         document.getElementById('homeGrid').classList.add('compact');
-        document.getElementById('layoutToggle').innerHTML = '☷ 详细';
+        document.getElementById('layoutToggle').innerHTML = '☰ 单列';
     }
 });
 </script>
