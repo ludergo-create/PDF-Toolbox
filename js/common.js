@@ -19,6 +19,31 @@ function safeStorageSet(key, value) {
     }
 }
 
+function safeSessionGet(key) {
+    try {
+        return window.sessionStorage.getItem(key);
+    } catch {
+        return null;
+    }
+}
+
+function safeSessionSet(key, value) {
+    try {
+        window.sessionStorage.setItem(key, value);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+function safeSessionRemove(key) {
+    try {
+        window.sessionStorage.removeItem(key);
+    } catch {
+        // 忽略隐私模式或存储不可用场景
+    }
+}
+
 // 初始化主题
 function initTheme() {
     const isDark = safeStorageGet('theme') === 'dark';
@@ -319,10 +344,30 @@ function registerServiceWorker() {
     if (!('serviceWorker' in navigator)) return;
     if (!window.isSecureContext) return;
 
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch(() => {
+    const refreshKey = 'pdf-toolbox-sw-refreshing';
+    if (safeSessionGet(refreshKey) === '1') {
+        safeSessionRemove(refreshKey);
+    }
+
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (refreshing) return;
+        refreshing = true;
+        safeSessionSet(refreshKey, '1');
+        window.location.reload();
+    });
+
+    window.addEventListener('load', async () => {
+        try {
+            const registration = await navigator.serviceWorker.register('sw.js', {
+                updateViaCache: 'none',
+            });
+            registration.update().catch(() => {
+                // 更新检查失败不影响核心功能
+            });
+        } catch {
             // 保持静默失败，避免影响核心功能
-        });
+        }
     });
 }
 

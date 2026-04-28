@@ -1,4 +1,4 @@
-const CACHE_VERSION = '2026-04-28-3';
+const CACHE_VERSION = '2026-04-28-4';
 const STATIC_CACHE = `pdf-toolbox-static-${CACHE_VERSION}`;
 const PAGE_CACHE = `pdf-toolbox-page-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `pdf-toolbox-runtime-${CACHE_VERSION}`;
@@ -18,7 +18,9 @@ const STATIC_ASSETS = [
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(STATIC_CACHE).then((cache) => {
-            return cache.addAll(STATIC_ASSETS);
+            return cache.addAll(
+                STATIC_ASSETS.map((asset) => new Request(asset, { cache: 'reload' }))
+            );
         })
     );
     self.skipWaiting();
@@ -58,24 +60,36 @@ async function cachePut(cacheName, request, response) {
     return response;
 }
 
-async function networkFirst(request, cacheName, timeoutMs = 3500) {
+function fetchWithCacheMode(request, cacheMode) {
+    if (!cacheMode) return fetch(request);
+    return fetch(request, { cache: cacheMode });
+}
+
+async function networkFirst(request, cacheName, options = {}) {
+    const { timeoutMs = 0, cacheMode = null, fallbackUrl = './index.html' } = options;
     const cache = await caches.open(cacheName);
     let timeoutId = null;
     let timedOut = false;
+    let timeoutPromise = null;
 
-    const timeoutPromise = new Promise((resolve) => {
-        timeoutId = setTimeout(() => {
-            timedOut = true;
-            resolve(null);
-        }, timeoutMs);
-    });
+    if (timeoutMs > 0) {
+        timeoutPromise = new Promise((resolve) => {
+            timeoutId = setTimeout(() => {
+                timedOut = true;
+                resolve(null);
+            }, timeoutMs);
+        });
+    }
 
     try {
-        const networkPromise = fetch(request).then(async (response) => {
+        const networkPromise = fetchWithCacheMode(request, cacheMode).then(async (response) => {
             if (timeoutId !== null) clearTimeout(timeoutId);
             return cachePut(cacheName, request, response);
         });
-        const networkResponse = await Promise.race([networkPromise, timeoutPromise]);
+        const networkResponse =
+            timeoutMs > 0
+                ? await Promise.race([networkPromise, timeoutPromise])
+                : await networkPromise;
         if (networkResponse) return networkResponse;
     } catch {
         // 网络失败时回退缓存
@@ -86,14 +100,16 @@ async function networkFirst(request, cacheName, timeoutMs = 3500) {
 
     if (timedOut) {
         try {
-            const fallbackResponse = await fetch(request);
+            const fallbackResponse = await fetchWithCacheMode(request, cacheMode);
             return cachePut(cacheName, request, fallbackResponse);
         } catch {
             // 忽略，交给后续兜底
         }
     }
 
-    const fallback = await caches.match('./index.html');
+    if (!fallbackUrl) return Response.error();
+
+    const fallback = await caches.match(fallbackUrl);
     return fallback || Response.error();
 }
 
@@ -119,8 +135,21 @@ self.addEventListener('fetch', (event) => {
     const url = new URL(request.url);
     if (url.origin !== self.location.origin) return;
 
-    if (request.mode === 'navigate') {
-        event.respondWith(networkFirst(request, PAGE_CACHE));
+    const isHtmlRequest = request.mode === 'navigate' || /\.html$/i.test(url.pathname);
+    if (isHtmlRequest) {
+        event.respondWith(networkFirst(request, PAGE_CACHE, { cacheMode: 'reload' }));
+        return;
+    }
+
+    const isCoreAsset =
+        url.pathname.endsWith('/css/style.css') || url.pathname.endsWith('/js/common.js');
+    if (isCoreAsset) {
+        event.respondWith(
+            networkFirst(request, RUNTIME_CACHE, {
+                cacheMode: 'reload',
+                fallbackUrl: null,
+            })
+        );
         return;
     }
 
