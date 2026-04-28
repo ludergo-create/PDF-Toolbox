@@ -162,25 +162,26 @@ input[type="number"] {
 /* ================= 📱 移动端完美适配 ================= */
 @media (max-width: 768px) {
     .app-body { flex-direction: column; }
-    
-    .sidebar { 
-        width: 100%; height: auto; padding: 16px 20px; border-right: none; border-bottom: 1px solid var(--border); 
+
+    .sidebar {
+        width: 100%; height: auto; padding: 16px 20px; border-right: none; border-bottom: 1px solid var(--border);
         display: flex; flex-wrap: wrap; gap: 8px; align-items: center; z-index: 10;
+        overflow-x: auto; -webkit-overflow-scrolling: touch;
     }
     .logo-area { margin: 0; padding: 0; flex-grow: 1; }
     .theme-toggle { margin: 0; padding: 6px 12px; font-size: 12px; width: auto; height: auto;}
     .divider, .nav-label, .spacer { display: none; }
-    
-    .nav-btn { margin: 0; text-align: center; padding: 8px 12px; width: auto; font-size: 13px;}
+
+    .nav-btn { margin: 0; text-align: center; padding: 8px 12px; width: auto; font-size: 13px; white-space: nowrap; flex-shrink: 0; }
 
     .main-content { padding: 16px; padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
     .header { margin-bottom: 16px; }
     .header h1 { font-size: 20px; }
     .card { padding: 16px; margin-bottom: 16px; }
-    
+
     .toolbar { flex-wrap: wrap; }
     .toolbar .btn { flex-grow: 1; text-align: center; }
-    #mergeFileCount { width: 100%; text-align: left !important; margin-top: 8px; }
+    #mergeFileCount, #imgCount { width: 100%; text-align: left !important; margin-top: 8px; }
     .file-item span:first-child { max-width: 80%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     .mode-row { flex-wrap: wrap; align-items: flex-start; gap: 8px;}
@@ -188,13 +189,28 @@ input[type="number"] {
     .mode-desc { margin-left: 0; width: 100%; margin-top: 4px; }
     input[type="number"], select { flex: 1; }
     input[type="text"] { width: 100% !important; margin-top: 4px;}
-    
+
     .card:last-child { flex-direction: column !important; align-items: stretch !important; gap: 16px; text-align: center; }
     .card:last-child .btn-run { width: 100%; }
 
-    .modal-content { flex-direction: column; overflow-y: auto;}
+    .home-grid { grid-template-columns: 1fr; gap: 12px; }
+    .tool-card { padding: 16px; }
+    .tool-card h3 { font-size: 16px; }
+
+    .pdf-page-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; max-height: 45vh; }
+
+    .modal-overlay { padding: 16px; }
+    .modal-content { flex-direction: column; overflow-y: auto; width: 100%; max-width: 100%; padding: 16px; }
     .modal-right { width: 100%; }
-    .modal-left { min-height: 300px; }
-    
+    .modal-left { min-height: 280px; }
+
     .hide-on-mobile { display: none !important; }
+}
+
+@media (max-width: 400px) {
+    .header h1 { font-size: 18px; }
+    .pdf-page-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+    .sidebar { padding: 12px; gap: 4px; }
+    .nav-btn { padding: 6px 10px; font-size: 12px; }
+    .logo-title { font-size: 16px; }
 }
