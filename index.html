@@ -54,9 +54,10 @@
                 <div class="header">
                     <h1>PDF 工具箱</h1>
                     <span class="badge badge-primary">安全、快速、全免费</span>
+                    <button class="btn btn-outline layout-toggle" id="layoutToggle" onclick="toggleLayout()" style="margin-left: auto; font-size: 12px;" title="切换卡片布局">☰ 紧凑</button>
                 </div>
-                
-                <div class="home-grid">
+
+                <div class="home-grid" id="homeGrid">
                     <a href="merge.html" class="tool-card">
                         <h3><span class="tool-icon">🔗</span> 合并 PDF</h3>
                         <p>将多个 PDF 文件合并成一个，支持拖拽调整页面顺序。纯本地处理，速度快，保密性强。</p>
@@ -93,5 +94,20 @@
 
         </div>
     </div>
+<script>
+function toggleLayout() {
+    const grid = document.getElementById('homeGrid');
+    const btn = document.getElementById('layoutToggle');
+    const compact = grid.classList.toggle('compact');
+    btn.innerHTML = compact ? '☷ 详细' : '☰ 紧凑';
+    localStorage.setItem('homeLayout', compact ? 'compact' : 'full');
+}
+document.addEventListener('DOMContentLoaded', () => {
+    if (localStorage.getItem('homeLayout') === 'compact') {
+        document.getElementById('homeGrid').classList.add('compact');
+        document.getElementById('layoutToggle').innerHTML = '☷ 详细';
+    }
+});
+</script>
 </body>
 </html>

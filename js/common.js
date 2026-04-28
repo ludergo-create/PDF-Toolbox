@@ -50,6 +50,8 @@ function initMobileNav() {
     btn.setAttribute('aria-expanded', 'false');
     btn.innerText = '☰';
 
+    let scrollY = 0;
+
     function setMobileNavOpen(isOpen) {
         sidebar.classList.toggle('nav-open', isOpen);
         overlay.classList.toggle('is-visible', isOpen);
@@ -57,6 +59,18 @@ function initMobileNav() {
         btn.setAttribute('aria-expanded', String(isOpen));
         btn.innerText = isOpen ? '×' : '☰';
         btn.setAttribute('aria-label', isOpen ? '关闭工具导航' : '打开工具导航');
+
+        if (isOpen) {
+            scrollY = window.scrollY;
+            document.body.style.position = 'fixed';
+            document.body.style.top = -scrollY + 'px';
+            document.body.style.width = '100%';
+        } else {
+            document.body.style.position = '';
+            document.body.style.top = '';
+            document.body.style.width = '';
+            window.scrollTo(0, scrollY);
+        }
     }
 
     btn.addEventListener('click', () => {
