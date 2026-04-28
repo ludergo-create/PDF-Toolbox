@@ -28,32 +28,9 @@
         </div>
 
         <div class="app-body">
-            <!-- SIDEBAR -->
-            <div class="sidebar">
-                <a href="index.html" class="logo-area">
-                    <div class="logo-icon">◈</div>
-                    <div class="logo-title">PDF 工具箱</div>
-                </a>
-                <div class="divider"></div>
+                        <!-- SIDEBAR -->
+            <div class="sidebar"></div>
 
-                <div class="nav-label hide-on-mobile">工具导航</div>
-                <a href="index.html" class="nav-btn" id="nav-home">首页</a>
-
-                <div class="nav-label hide-on-mobile nav-label-spaced">核心处理</div>
-                <a href="merge.html" class="nav-btn" id="nav-merge">合并 PDF</a>
-                <a href="split.html" class="nav-btn" id="nav-split">拆分 / 提取</a>
-                <a href="edit-pages.html" class="nav-btn" id="nav-edit">旋转与删除</a>
-
-                <div class="nav-label hide-on-mobile nav-label-spaced">格式转换</div>
-                <a href="pdf-to-img.html" class="nav-btn" id="nav-pdf2img">PDF 转图片</a>
-                <a href="img-to-pdf.html" class="nav-btn" id="nav-img2pdf">图片转 PDF</a>
-
-                <div class="nav-label hide-on-mobile nav-label-spaced">安全与保护</div>
-                <a href="watermark.html" class="nav-btn" id="nav-watermark">PDF 加水印</a>
-
-                <div class="spacer"></div>
-                <button class="theme-toggle" id="themeBtn">切换深色</button>
-            </div>
 
             <!-- MAIN CONTENT -->
             <div class="main-content">
@@ -80,7 +57,7 @@
                                 title="移除文件"
                                 aria-label="移除文件"
                             >
-                                <svg viewBox="0 0 24 24">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
                                     <path
                                         d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-3.5l-1-1zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7z"
                                     />
@@ -127,144 +104,6 @@
         <script src="js/common.js"></script>
         <script src="js/vendor/pdf.min.js"></script>
         <script src="js/vendor/jszip.min.js"></script>
-        <script>
-            pdfjsLib.GlobalWorkerOptions.workerSrc = 'js/vendor/pdf.worker.min.js';
-
-            let pdfFileObj = null;
-            const pdfFileInput = document.getElementById('pdfFileInput');
-            const pdfResetBtn = document.getElementById('pdfResetBtn');
-            const runPdfBtn = document.getElementById('runPdfBtn');
-
-            pdfFileInput.addEventListener('change', handlePdfFileAdded);
-            pdfResetBtn.addEventListener('click', resetPdfFile);
-            runPdfBtn.addEventListener('click', runPdfToImg);
-
-            const pdfDropZone = document.getElementById('pdfDropZone');
-            pdfDropZone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'copy';
-            });
-            pdfDropZone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                if (e.dataTransfer.files.length > 0) loadPdfFile(e.dataTransfer.files[0]);
-            });
-
-            function handlePdfFileAdded(event) {
-                if (event.target.files.length > 0) loadPdfFile(event.target.files[0]);
-                event.target.value = '';
-            }
-
-            function resetPdfFile() {
-                pdfFileObj = null;
-                document.getElementById('pdfDropZone').style.display = 'block';
-                document.getElementById('fileInfoArea').style.display = 'none';
-                document.getElementById('pdfStatusText').innerText = '未加载文件';
-                document.getElementById('runPdfBtn').disabled = true;
-            }
-
-            async function loadPdfFile(file) {
-                if (!isPdfFile(file)) {
-                    alert('只能选择 PDF 文件！');
-                    return;
-                }
-                pdfFileObj = file;
-
-                const dropLabel = document.getElementById('pdfDropZone');
-                const fileInfoArea = document.getElementById('fileInfoArea');
-                const fileNameDiv = document.getElementById('pdfFileName');
-                const status = document.getElementById('pdfStatusText');
-                const btn = document.getElementById('runPdfBtn');
-
-                dropLabel.innerHTML = '正在读取文档...';
-                try {
-                    const arrayBuffer = await file.arrayBuffer();
-                    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-
-                    dropLabel.style.display = 'none';
-                    dropLabel.innerHTML =
-                        '点击选择 PDF 文件<span class="hide-on-mobile">（或将文件拖到此处）</span>';
-
-                    fileInfoArea.style.display = 'flex';
-                    fileNameDiv.innerText = `📄 ${file.name} (共 ${pdf.numPages} 页)`;
-
-                    status.innerText = '文件已就绪，请配置转换参数';
-                    btn.disabled = false;
-                } catch {
-                    dropLabel.innerHTML = '❌ 读取失败，可能是加密文件。点击重试';
-                    pdfFileObj = null;
-                    btn.disabled = true;
-                }
-            }
-
-            async function runPdfToImg() {
-                if (!pdfFileObj) return;
-
-                const btn = document.getElementById('runPdfBtn');
-                const status = document.getElementById('pdfStatusText');
-                const format = document.getElementById('formatSelect').value;
-                const ext = format === 'image/jpeg' ? 'jpg' : 'png';
-                const scale = parseFloat(document.getElementById('scaleSelect').value);
-
-                btn.disabled = true;
-                btn.innerText = '转换中...';
-                status.innerText = '正在解析 PDF...';
-
-                try {
-                    const arrayBuffer = await pdfFileObj.arrayBuffer();
-                    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                    const totalPages = pdf.numPages;
-                    const zip = new JSZip();
-                    const canvas = document.getElementById('renderCanvas');
-                    const ctx = canvas.getContext('2d');
-
-                    const baseName = pdfFileObj.name.replace(/\.[^/.]+$/, '');
-
-                    for (let i = 1; i <= totalPages; i++) {
-                        status.innerText = `正在渲染页面 ${i} / ${totalPages}...`;
-                        const page = await pdf.getPage(i);
-                        const viewport = page.getViewport({ scale: scale });
-
-                        canvas.height = viewport.height;
-                        canvas.width = viewport.width;
-
-                        // Fill white background for JPEG
-                        if (format === 'image/jpeg') {
-                            ctx.fillStyle = 'white';
-                            ctx.fillRect(0, 0, canvas.width, canvas.height);
-                        }
-
-                        const renderContext = {
-                            canvasContext: ctx,
-                            viewport: viewport,
-                        };
-                        await page.render(renderContext).promise;
-
-                        // Convert canvas to blob
-                        const blob = await new Promise((resolve) =>
-                            canvas.toBlob(resolve, format, 0.9)
-                        );
-                        zip.file(`${baseName}_${i}.${ext}`, blob);
-                    }
-
-                    status.innerText = '正在打包图片压缩包...';
-                    const zipContent = await zip.generateAsync({ type: 'blob' });
-                    triggerDownload(zipContent, `${baseName}_图片.zip`, 'application/zip');
-
-                    status.innerText = '✅ 转换完成，已下载压缩包';
-                    status.style.color = 'var(--success)';
-                } catch (e) {
-                    console.error(e);
-                    status.innerText = '❌ 转换失败';
-                    status.style.color = 'var(--danger)';
-                } finally {
-                    btn.disabled = false;
-                    btn.innerText = '开始转换并打包';
-                    setTimeout(() => {
-                        status.innerText = '文件已就绪，请配置转换参数';
-                        status.style.color = 'var(--text-sub)';
-                    }, 4000);
-                }
-            }
-        </script>
+        <script src="js/pdf-to-img.js"></script>
     </body>
 </html>

@@ -17,7 +17,9 @@ module.exports = [
             'eqeqeq': ['error', 'always'],
             'no-undef': 'error',
             'no-unused-vars': 'warn',
-            'prefer-const': 'warn'
+            'prefer-const': 'warn',
+            'radix': 'error',
+            'no-var': 'error'
         }
     },
     {
@@ -39,14 +41,38 @@ module.exports = [
                 triggerDownload: 'readonly',
                 createModalFocusManager: 'readonly',
                 safeStorageGet: 'readonly',
-                safeStorageSet: 'readonly'
+                safeStorageSet: 'readonly',
+                bindDropZone: 'readonly',
+                setStatus: 'readonly',
+                showFileLoaded: 'readonly',
+                updateFooterYear: 'readonly'
             }
         },
         rules: {
             'eqeqeq': ['error', 'always'],
             'no-undef': 'error',
             'no-unused-vars': 'warn',
-            'prefer-const': 'warn'
+            'prefer-const': 'warn',
+            'radix': 'error',
+            'no-var': 'error'
+        }
+    },
+    {
+        files: ['sw.js'],
+        languageOptions: {
+            ecmaVersion: 2021,
+            sourceType: 'script',
+            globals: {
+                ...globals.serviceworker
+            }
+        },
+        rules: {
+            'eqeqeq': ['error', 'always'],
+            'no-undef': 'error',
+            'no-unused-vars': 'warn',
+            'prefer-const': 'warn',
+            'radix': 'error',
+            'no-var': 'error'
         }
     }
 ];

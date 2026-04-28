@@ -28,32 +28,9 @@
         </div>
 
         <div class="app-body">
-            <!-- SIDEBAR -->
-            <div class="sidebar">
-                <a href="index.html" class="logo-area">
-                    <div class="logo-icon">◈</div>
-                    <div class="logo-title">PDF 工具箱</div>
-                </a>
-                <div class="divider"></div>
+                        <!-- SIDEBAR -->
+            <div class="sidebar"></div>
 
-                <div class="nav-label hide-on-mobile">工具导航</div>
-                <a href="index.html" class="nav-btn" id="nav-home">首页</a>
-
-                <div class="nav-label hide-on-mobile nav-label-spaced">核心处理</div>
-                <a href="merge.html" class="nav-btn" id="nav-merge">合并 PDF</a>
-                <a href="split.html" class="nav-btn" id="nav-split">拆分 / 提取</a>
-                <a href="edit-pages.html" class="nav-btn" id="nav-edit">旋转与删除</a>
-
-                <div class="nav-label hide-on-mobile nav-label-spaced">格式转换</div>
-                <a href="pdf-to-img.html" class="nav-btn" id="nav-pdf2img">PDF 转图片</a>
-                <a href="img-to-pdf.html" class="nav-btn" id="nav-img2pdf">图片转 PDF</a>
-
-                <div class="nav-label hide-on-mobile nav-label-spaced">安全与保护</div>
-                <a href="watermark.html" class="nav-btn" id="nav-watermark">PDF 加水印</a>
-
-                <div class="spacer"></div>
-                <button class="theme-toggle" id="themeBtn">切换深色</button>
-            </div>
 
             <!-- MAIN CONTENT -->
             <div class="main-content">
@@ -118,25 +95,6 @@
             </div>
         </div>
         <script src="js/common.js"></script>
-        <script>
-            function toggleLayout() {
-                const grid = document.getElementById('homeGrid');
-                const btn = document.getElementById('layoutToggle');
-                const compact = grid.classList.toggle('compact');
-                btn.innerHTML = compact ? '☰ 单列' : '☷ 双列';
-                if (typeof safeStorageSet === 'function') {
-                    safeStorageSet('homeLayout', compact ? 'compact' : 'full');
-                }
-            }
-            document.addEventListener('DOMContentLoaded', () => {
-                document.getElementById('layoutToggle').addEventListener('click', toggleLayout);
-                const homeLayout =
-                    typeof safeStorageGet === 'function' ? safeStorageGet('homeLayout') : null;
-                if (homeLayout === 'compact') {
-                    document.getElementById('homeGrid').classList.add('compact');
-                    document.getElementById('layoutToggle').innerHTML = '☰ 单列';
-                }
-            });
-        </script>
+        <script src="js/index.js"></script>
     </body>
 </html>

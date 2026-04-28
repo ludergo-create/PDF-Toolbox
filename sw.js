@@ -1,4 +1,4 @@
-const CACHE_VERSION = '2026-04-28-5';
+const CACHE_VERSION = '2026-04-28-6';
 const STATIC_CACHE = `pdf-toolbox-static-${CACHE_VERSION}`;
 const PAGE_CACHE = `pdf-toolbox-page-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `pdf-toolbox-runtime-${CACHE_VERSION}`;
@@ -13,6 +13,13 @@ const STATIC_ASSETS = [
     './watermark.html',
     './css/style.css',
     './js/common.js',
+    './js/index.js',
+    './js/merge.js',
+    './js/split.js',
+    './js/edit-pages.js',
+    './js/pdf-to-img.js',
+    './js/img-to-pdf.js',
+    './js/watermark.js',
 ];
 
 self.addEventListener('install', (event) => {

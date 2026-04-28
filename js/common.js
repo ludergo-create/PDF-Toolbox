@@ -1,4 +1,4 @@
-/* exported generateId, isPdfFile, isImageFile, triggerDownload, createModalFocusManager */
+/* exported generateId, isPdfFile, isImageFile, triggerDownload, createModalFocusManager, bindDropZone, setStatus, showFileLoaded, updateFooterYear */
 
 // ================= 全局基础逻辑 =================
 
@@ -69,7 +69,7 @@ function toggleTheme() {
 }
 
 function generateId() {
-    return Math.random().toString(36).substr(2, 9);
+    return Math.random().toString(36).slice(2, 11);
 }
 
 function hasFileExtension(fileName, extensions) {
@@ -110,6 +110,116 @@ function triggerDownload(bytes, filename, mimeType = 'application/pdf') {
     a.click();
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// ================= 侧边栏动态渲染 (I-1) =================
+
+const NAV_ITEMS = [
+    { label: '工具导航', type: 'section' },
+    { href: 'index.html', id: 'nav-home', text: '首页' },
+    { label: '核心处理', type: 'section' },
+    { href: 'merge.html', id: 'nav-merge', text: '合并 PDF' },
+    { href: 'split.html', id: 'nav-split', text: '拆分 / 提取' },
+    { href: 'edit-pages.html', id: 'nav-edit', text: '旋转与删除' },
+    { label: '格式转换', type: 'section' },
+    { href: 'pdf-to-img.html', id: 'nav-pdf2img', text: 'PDF 转图片' },
+    { href: 'img-to-pdf.html', id: 'nav-img2pdf', text: '图片转 PDF' },
+    { label: '安全与保护', type: 'section' },
+    { href: 'watermark.html', id: 'nav-watermark', text: 'PDF 加水印' },
+];
+
+function renderSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    if (!sidebar || sidebar.dataset.rendered) return;
+    sidebar.dataset.rendered = 'true';
+
+    // Logo
+    const logoLink = document.createElement('a');
+    logoLink.href = 'index.html';
+    logoLink.className = 'logo-area';
+    const logoIcon = document.createElement('div');
+    logoIcon.className = 'logo-icon';
+    logoIcon.textContent = '◈';
+    const logoTitle = document.createElement('div');
+    logoTitle.className = 'logo-title';
+    logoTitle.textContent = 'PDF 工具箱';
+    logoLink.appendChild(logoIcon);
+    logoLink.appendChild(logoTitle);
+    sidebar.appendChild(logoLink);
+
+    const divider = document.createElement('div');
+    divider.className = 'divider';
+    sidebar.appendChild(divider);
+
+    let isFirstSection = true;
+    NAV_ITEMS.forEach((item) => {
+        if (item.type === 'section') {
+            const label = document.createElement('div');
+            label.className = 'nav-label hide-on-mobile' + (isFirstSection ? '' : ' nav-label-spaced');
+            label.textContent = item.label;
+            sidebar.appendChild(label);
+            isFirstSection = false;
+        } else {
+            const link = document.createElement('a');
+            link.href = item.href;
+            link.className = 'nav-btn';
+            link.id = item.id;
+            link.textContent = item.text;
+            sidebar.appendChild(link);
+        }
+    });
+
+    const spacer = document.createElement('div');
+    spacer.className = 'spacer';
+    sidebar.appendChild(spacer);
+
+    const themeBtn = document.createElement('button');
+    themeBtn.className = 'theme-toggle';
+    themeBtn.id = 'themeBtn';
+    themeBtn.textContent = '切换深色';
+    sidebar.appendChild(themeBtn);
+}
+
+// ================= 公共辅助函数 (I-7) =================
+
+/** 绑定拖放区域 */
+function bindDropZone(elementOrId, options) {
+    const el = typeof elementOrId === 'string'
+        ? document.getElementById(elementOrId) : elementOrId;
+    if (!el) return;
+    const { onDrop, accept } = options || {};
+    el.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+    });
+    el.addEventListener('drop', (e) => {
+        e.preventDefault();
+        let files = Array.from(e.dataTransfer.files);
+        if (accept) files = files.filter(accept);
+        if (files.length > 0 && onDrop) onDrop(files);
+    });
+}
+
+/** 设置状态消息（可自动恢复） */
+function setStatus(elementOrId, text, type, resetMs, resetText) {
+    const el = typeof elementOrId === 'string'
+        ? document.getElementById(elementOrId) : elementOrId;
+    if (!el) return;
+    el.innerText = text;
+    const colorMap = { success: 'var(--success)', danger: 'var(--danger)',
+                       info: 'var(--text-sub)', ready: 'var(--text-main)' };
+    el.style.color = colorMap[type || 'info'] || '';
+    if (resetMs > 0 && resetText) {
+        setTimeout(() => { el.innerText = resetText; el.style.color = colorMap.info; }, resetMs);
+    }
+}
+
+/** 切换加载区/信息区显示 */
+function showFileLoaded(dropZoneId, fileInfoId, show) {
+    const dropZone = document.getElementById(dropZoneId);
+    const fileInfo = document.getElementById(fileInfoId);
+    if (dropZone) dropZone.style.display = show ? 'none' : 'block';
+    if (fileInfo) fileInfo.style.display = show ? 'flex' : 'none';
 }
 
 function showPrivacyNotice() {
@@ -399,17 +509,17 @@ async function loadOptionalSiteConfig() {
 }
 
 function renderIcpBadge() {
-    var config = window.SITE_CONFIG || {};
-    var icp = (config.icpNumber || '').trim();
+    const config = window.SITE_CONFIG || {};
+    const icp = (config.icpNumber || '').trim();
     if (!icp) return;
 
-    var footer = document.querySelector('.footer');
+    const footer = document.querySelector('.footer');
     if (!footer) return;
 
-    var line = document.createElement('p');
+    const line = document.createElement('p');
     line.style.cssText = 'font-size:12px; margin-top:6px;';
 
-    var link = document.createElement('a');
+    const link = document.createElement('a');
     link.href = 'https://beian.miit.gov.cn/';
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
@@ -489,13 +599,23 @@ function createModalFocusManager(modal, onEscape) {
 
 const optionalSiteConfigReady = loadOptionalSiteConfig();
 
+/** 动态更新 footer 中的版权年份 */
+function updateFooterYear() {
+    const footer = document.querySelector('.footer');
+    if (!footer) return;
+    const year = new Date().getFullYear();
+    footer.innerHTML = footer.innerHTML.replace(/© \d{4}/, `© ${year}`);
+}
+
 // 页面加载完成后初始化主题
 document.addEventListener('DOMContentLoaded', () => {
+    renderSidebar();
     initTheme();
     bindThemeToggleButton();
     initMobileNav();
     bindPrivacyNoticeLinks();
     initNavigationPrefetch();
+    updateFooterYear();
     optionalSiteConfigReady.then(renderIcpBadge);
 });
 
