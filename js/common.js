@@ -44,24 +44,26 @@ function initMobileNav() {
     overlay.className = 'mobile-nav-overlay';
     overlay.setAttribute('aria-hidden', 'true');
 
-    // 汉堡按钮
+    // 汉堡按钮（侧栏顶部，打开抽屉用）
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'mobile-menu-toggle';
     btn.setAttribute('aria-label', '打开工具导航');
-    btn.setAttribute('aria-expanded', 'false');
     btn.innerText = '☰';
 
-    // 抽屉容器（动画只作用于这一个元素）
+    // 抽屉容器
     const drawer = document.createElement('div');
     drawer.className = 'mobile-drawer';
-    drawer.innerHTML = '<div class="mobile-drawer-title">PDF 工具箱</div>';
+    drawer.innerHTML = '<button class="mobile-drawer-close" aria-label="关闭工具导航">×</button><div class="mobile-drawer-title">PDF 工具箱</div>';
 
     // 把 nav-btn 和 theme-toggle 移入抽屉
     const navBtns = sidebar.querySelectorAll('.nav-btn');
     const themeBtn = sidebar.querySelector('.theme-toggle');
     navBtns.forEach(b => drawer.appendChild(b));
     if (themeBtn) drawer.appendChild(themeBtn);
+
+    // 关闭按钮（抽屉内部）
+    const closeBtn = drawer.querySelector('.mobile-drawer-close');
 
     sidebar.appendChild(btn);
     document.body.appendChild(drawer);
@@ -73,10 +75,6 @@ function initMobileNav() {
         drawer.classList.toggle('open', isOpen);
         overlay.classList.toggle('is-visible', isOpen);
         document.body.classList.toggle('mobile-nav-open', isOpen);
-        btn.classList.toggle('active', isOpen);
-        btn.setAttribute('aria-expanded', String(isOpen));
-        btn.innerText = isOpen ? '×' : '☰';
-        btn.setAttribute('aria-label', isOpen ? '关闭工具导航' : '打开工具导航');
 
         if (isOpen) {
             scrollY = window.scrollY;
@@ -91,9 +89,8 @@ function initMobileNav() {
         }
     }
 
-    btn.addEventListener('click', () => {
-        setMobileNavOpen(!drawer.classList.contains('open'));
-    });
+    btn.addEventListener('click', () => setMobileNavOpen(true));
+    closeBtn.addEventListener('click', () => setMobileNavOpen(false));
 
     overlay.addEventListener('click', () => setMobileNavOpen(false));
 
