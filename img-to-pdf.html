@@ -77,7 +77,7 @@
 
                 <div class="card" style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <span style="color: var(--text-sub); font-size: 13px;" id="imgStatusText">请选择至少 1 张图片</span>
-                    <button class="btn btn-run" id="runImg2PdfBtn" onclick="runImgToPdf()" disabled>合并为 PDF</button>
+                    <button class="btn btn-run" id="runImg2PdfBtn" onclick="runImgToPdf()">合并为 PDF</button>
                 </div>
                 
                 <div style="flex-grow: 1;"></div>
@@ -126,15 +126,12 @@
             document.getElementById('imgEmptyTip').style.display = count > 0 ? 'none' : 'block';
             
             const statusText = document.getElementById('imgStatusText');
-            const btn = document.getElementById('runImg2PdfBtn');
             if (count < 1) {
                 statusText.innerText = "请选择至少 1 张图片";
                 statusText.style.color = "var(--text-sub)";
-                btn.disabled = true;
             } else {
                 statusText.innerText = `已准备 ${count} 张图片，可以开始生成`;
                 statusText.style.color = "var(--text-main)";
-                btn.disabled = false;
             }
         }
 

@@ -75,7 +75,7 @@
 
                 <div class="card" style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <span style="color: var(--text-sub); font-size: 13px;" id="mergeStatusText">请选择至少 2 个 PDF 文件</span>
-                    <button class="btn btn-run" id="runMergeBtn" onclick="runMerge()" disabled>开始合并</button>
+                    <button class="btn btn-run" id="runMergeBtn" onclick="runMerge()">开始合并</button>
                 </div>
                 
                 <div style="flex-grow: 1;"></div>
@@ -117,15 +117,12 @@
             document.getElementById('mergeEmptyTip').style.display = count > 0 ? 'none' : 'block';
             
             const statusText = document.getElementById('mergeStatusText');
-            const btn = document.getElementById('runMergeBtn');
             if (count < 2) {
                 statusText.innerText = "请选择至少 2 个 PDF 文件";
                 statusText.style.color = "var(--text-sub)";
-                btn.disabled = true;
             } else {
                 statusText.innerText = `已准备 ${count} 个文件，可以开始合并`;
                 statusText.style.color = "var(--text-main)";
-                btn.disabled = false;
             }
         }
 
