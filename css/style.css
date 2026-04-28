@@ -261,7 +261,7 @@ input[type="number"] {
         line-height: 1;
         flex: 0 0 auto;
         order: 0;
-        z-index: 113;
+        z-index: 114;
         transition: background-color 0.2s, color 0.2s, border-color 0.2s;
     }
 
@@ -269,7 +269,7 @@ input[type="number"] {
         position: fixed;
         top: 18px;
         left: calc(min(72vw, 280px) - 48px);
-        z-index: 114;
+        z-index: 115;
         background: transparent;
         border-color: transparent;
         color: var(--text-dim);
@@ -299,7 +299,7 @@ input[type="number"] {
         background: var(--bg-surface);
         border-right: 1px solid var(--border);
         box-shadow: 14px 0 34px rgba(0,0,0,0.18);
-        z-index: 111;
+        z-index: 113;
         transform: translateX(-100%);
         transition: transform 0.26s cubic-bezier(.2,.8,.2,1);
         display: flex;
@@ -375,7 +375,7 @@ input[type="number"] {
         opacity: 0;
         pointer-events: none;
         transition: opacity 0.25s ease;
-        z-index: 100;
+        z-index: 112;
     }
 
     .mobile-nav-overlay.is-visible {
