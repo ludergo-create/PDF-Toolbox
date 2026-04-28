@@ -1,3 +1,5 @@
+/* exported generateId, isPdfFile, isImageFile, triggerDownload */
+
 // ================= 全局基础逻辑 =================
 
 function safeStorageGet(key) {
@@ -324,6 +326,33 @@ function registerServiceWorker() {
     });
 }
 
+function appendOptionalSiteConfigScript(configUrl) {
+    return new Promise((resolve) => {
+        const script = document.createElement('script');
+        script.src = configUrl;
+        script.async = false;
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.head.appendChild(script);
+    });
+}
+
+async function loadOptionalSiteConfig() {
+    if (window.SITE_CONFIG) return;
+
+    const configUrl = new URL('js/config.js', window.location.href).href;
+    try {
+        if (window.location.protocol !== 'file:') {
+            const response = await fetch(configUrl, { method: 'HEAD', cache: 'no-cache' });
+            if (!response.ok && response.status !== 405) return;
+        }
+
+        await appendOptionalSiteConfigScript(configUrl);
+    } catch {
+        // 未配置 ICP 时静默跳过，不影响核心工具功能
+    }
+}
+
 function renderIcpBadge() {
     var config = window.SITE_CONFIG || {};
     var icp = (config.icpNumber || '').trim();
@@ -346,6 +375,8 @@ function renderIcpBadge() {
     footer.appendChild(line);
 }
 
+const optionalSiteConfigReady = loadOptionalSiteConfig();
+
 // 页面加载完成后初始化主题
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
@@ -353,7 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initMobileNav();
     bindPrivacyNoticeLinks();
     initNavigationPrefetch();
-    renderIcpBadge();
+    optionalSiteConfigReady.then(renderIcpBadge);
 });
 
 registerServiceWorker();

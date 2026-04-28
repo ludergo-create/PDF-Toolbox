@@ -8,5 +8,5 @@
 //   链接必须指向 https://beian.miit.gov.cn/
 //   所有页面底部均需展示
 window.SITE_CONFIG = {
-    icpNumber: ''
+    icpNumber: '',
 };

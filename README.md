@@ -16,6 +16,8 @@
 
 建议部署到静态服务器后访问；直接用 `file://` 打开时，部分浏览器可能限制 Worker 行为。
 
+如需展示 ICP 备案号，复制 `js/config.example.js` 为 `js/config.js` 并填写备案号；未提供该文件时，页面仅不展示 ICP 信息，不影响 PDF 工具功能。
+
 ## 性能优化说明
 
 - 已内置页面预取（hover/touch/focus + 空闲时预取）与 Service Worker 缓存（`sw.js`）。

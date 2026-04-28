@@ -187,8 +187,7 @@
             </div>
         </div>
 
-        <script src="js/config.js"></script>
-    <script src="js/common.js"></script>
+        <script src="js/common.js"></script>
         <script src="js/vendor/pdf.min.js"></script>
         <script src="js/vendor/pdf-lib.min.js"></script>
         <script>
@@ -332,6 +331,11 @@
 
             function closePreviewModal() {
                 document.getElementById('previewModal').style.display = 'none';
+            }
+
+            function normalizePageRotation(angle) {
+                const normalized = ((angle % 360) + 360) % 360;
+                return (Math.round(normalized / 90) * 90) % 360;
             }
 
             const editDropZone = document.getElementById('editDropZone');
@@ -478,7 +482,7 @@
 
             // 单页操作
             function rotatePage(idx, deg) {
-                pagesState[idx].rotation = (pagesState[idx].rotation + deg) % 360;
+                pagesState[idx].rotation = normalizePageRotation(pagesState[idx].rotation + deg);
                 document.getElementById(`page-canvas-${idx}`).style.transform =
                     `rotate(${pagesState[idx].rotation}deg)`;
             }
@@ -538,7 +542,9 @@
                             if (extraRot !== 0) {
                                 const page = newDoc.getPage(i);
                                 const currentAngle = page.getRotation().angle;
-                                page.setRotation(degrees(currentAngle + extraRot));
+                                page.setRotation(
+                                    degrees(normalizePageRotation(currentAngle + extraRot))
+                                );
                             }
                         }
                     }

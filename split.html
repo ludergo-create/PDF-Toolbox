@@ -165,8 +165,7 @@
             </div>
         </div>
 
-        <script src="js/config.js"></script>
-    <script src="js/common.js"></script>
+        <script src="js/common.js"></script>
         <script src="js/vendor/pdf-lib.min.js"></script>
         <script src="js/vendor/jszip.min.js"></script>
         <script>
@@ -189,6 +188,46 @@
                 document.getElementById('rangeStart').disabled = mode !== 'range';
                 document.getElementById('rangeEnd').disabled = mode !== 'range';
                 document.getElementById('groupInput').disabled = mode !== 'group';
+            }
+
+            function parsePageNumber(value, label) {
+                const text = String(value).trim();
+                if (!/^\d+$/.test(text)) {
+                    throw new Error(`${label}必须是纯数字页码。`);
+                }
+
+                const pageNumber = Number.parseInt(text, 10);
+                if (
+                    !Number.isSafeInteger(pageNumber) ||
+                    pageNumber < 1 ||
+                    pageNumber > splitTotalPages
+                ) {
+                    throw new Error(`${label}必须在 1 - ${splitTotalPages} 之间。`);
+                }
+
+                return pageNumber;
+            }
+
+            function parseGroupPart(part) {
+                if (/^\d+$/.test(part)) {
+                    const pageNumber = parsePageNumber(part, `分组页码 "${part}"`);
+                    return [pageNumber - 1];
+                }
+
+                if (/^\d+-\d+$/.test(part)) {
+                    const [startText, endText] = part.split('-');
+                    const start = parsePageNumber(startText, `分组 "${part}" 的起始页码`);
+                    const end = parsePageNumber(endText, `分组 "${part}" 的结束页码`);
+                    if (start > end) {
+                        throw new Error(`分组范围有误: "${part}"，起始页不能大于结束页。`);
+                    }
+
+                    const pages = [];
+                    for (let i = start; i <= end; i += 1) pages.push(i - 1);
+                    return pages;
+                }
+
+                throw new Error(`分组格式有误: "${part}"。请输入类似：1, 3, 5-8`);
             }
 
             const splitDropZone = document.getElementById('splitDropZone');
@@ -244,7 +283,7 @@
 
                     status.innerText = '文件已就绪，请选择拆分模式';
                     btn.disabled = false;
-                } catch (e) {
+                } catch {
                     dropLabel.innerHTML = '❌ 读取失败，可能是加密文件。点击重试';
                     splitFileObj = null;
                     btn.disabled = true;
@@ -266,44 +305,29 @@
                             exportTasks.push({ suffix: `${i + 1}`, pages: [i] });
                         }
                     } else if (mode === 'range') {
-                        const start = parseInt(document.getElementById('rangeStart').value);
-                        const end = parseInt(document.getElementById('rangeEnd').value);
-                        if (
-                            isNaN(start) ||
-                            isNaN(end) ||
-                            start < 1 ||
-                            start > end ||
-                            end > splitTotalPages
-                        ) {
-                            throw new Error(
-                                `范围无效，请输入 1 - ${splitTotalPages} 之间的有效数字。`
-                            );
+                        const start = parsePageNumber(
+                            document.getElementById('rangeStart').value,
+                            '起始页码'
+                        );
+                        const end = parsePageNumber(
+                            document.getElementById('rangeEnd').value,
+                            '结束页码'
+                        );
+                        if (start > end) {
+                            throw new Error('范围无效，起始页不能大于结束页。');
                         }
                         const pagesArr = [];
-                        for (let i = start; i <= end; i++) pagesArr.push(i - 1);
+                        for (let i = start; i <= end; i += 1) pagesArr.push(i - 1);
                         exportTasks.push({ suffix: `${start}-${end}`, pages: pagesArr });
                     } else if (mode === 'group') {
                         const txt = document.getElementById('groupInput').value;
                         const parts = txt.replace(/，/g, ',').split(',');
-                        for (let p of parts) {
-                            p = p.trim();
-                            if (!p) continue;
-                            const suffix = p;
-                            const pagesArr = [];
-                            if (p.includes('-')) {
-                                const [sStr, eStr] = p.split('-');
-                                const s = parseInt(sStr),
-                                    e = parseInt(eStr);
-                                if (isNaN(s) || isNaN(e) || s > e || s < 1 || e > splitTotalPages)
-                                    throw new Error(`分组格式有误: "${p}"。请输入类似：1, 3, 5-8`);
-                                for (let i = s; i <= e; i++) pagesArr.push(i - 1);
-                            } else {
-                                const s = parseInt(p);
-                                if (isNaN(s) || s < 1 || s > splitTotalPages)
-                                    throw new Error(`分组页码有误: "${p}"。请输入类似：1, 3, 5-8`);
-                                pagesArr.push(s - 1);
+                        for (const rawPart of parts) {
+                            const part = rawPart.trim();
+                            if (!part) {
+                                throw new Error('分组格式有误：存在空分组。请输入类似：1, 3, 5-8');
                             }
-                            exportTasks.push({ suffix: suffix, pages: pagesArr });
+                            exportTasks.push({ suffix: part, pages: parseGroupPart(part) });
                         }
                         if (exportTasks.length === 0)
                             throw new Error('请填写有效的分组规则！格式如：1, 3, 5-8');

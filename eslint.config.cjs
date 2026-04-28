@@ -16,7 +16,7 @@ module.exports = [
         rules: {
             'eqeqeq': ['error', 'always'],
             'no-undef': 'error',
-            'no-unused-vars': 'off',
+            'no-unused-vars': 'warn',
             'prefer-const': 'warn'
         }
     },
@@ -44,7 +44,7 @@ module.exports = [
         rules: {
             'eqeqeq': ['error', 'always'],
             'no-undef': 'error',
-            'no-unused-vars': 'off',
+            'no-unused-vars': 'warn',
             'prefer-const': 'warn'
         }
     }

@@ -124,8 +124,7 @@
         <!-- Hidden canvas for rendering -->
         <canvas id="renderCanvas" class="u-hidden"></canvas>
 
-        <script src="js/config.js"></script>
-    <script src="js/common.js"></script>
+        <script src="js/common.js"></script>
         <script src="js/vendor/pdf.min.js"></script>
         <script src="js/vendor/jszip.min.js"></script>
         <script>
@@ -190,7 +189,7 @@
 
                     status.innerText = '文件已就绪，请配置转换参数';
                     btn.disabled = false;
-                } catch (e) {
+                } catch {
                     dropLabel.innerHTML = '❌ 读取失败，可能是加密文件。点击重试';
                     pdfFileObj = null;
                     btn.disabled = true;

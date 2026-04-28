@@ -1,4 +1,4 @@
-const CACHE_VERSION = '2026-04-28-1';
+const CACHE_VERSION = '2026-04-28-2';
 const STATIC_CACHE = `pdf-toolbox-static-${CACHE_VERSION}`;
 const PAGE_CACHE = `pdf-toolbox-page-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `pdf-toolbox-runtime-${CACHE_VERSION}`;
@@ -52,7 +52,7 @@ async function cachePut(cacheName, request, response) {
     if (!isCacheableResponse(response)) return response;
     try {
         const cache = await caches.open(cacheName);
-        cache.put(request, response.clone());
+        await cache.put(request, response.clone());
     } catch {
         // 缓存配额不足时不影响主流程
     }

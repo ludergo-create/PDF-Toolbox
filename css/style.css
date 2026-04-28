@@ -384,10 +384,6 @@ input[type='number'] {
 .u-justify-between {
     justify-content: space-between;
 }
-.u-fit-content {
-    width: auto;
-    height: auto;
-}
 .u-text-center {
     text-align: center;
 }
@@ -455,22 +451,6 @@ input[type='number'] {
 }
 .u-position-relative {
     position: relative;
-}
-.u-transition-transform {
-    transition: transform 0.1s ease-out;
-}
-.u-shadow-soft {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-.u-shadow-float {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-.u-bg-preview {
-    background: #e5e7eb;
-}
-.u-no-max-size {
-    max-width: none;
-    max-height: none;
 }
 .u-flex-wrap {
     flex-wrap: wrap;
@@ -563,12 +543,6 @@ input[type='number'] {
 }
 .wm-page-grid-offset {
     margin-top: 20px;
-}
-.wm-page-label {
-    font-size: 12px;
-    margin-top: 8px;
-    color: var(--text-dim);
-    text-align: center;
 }
 .wm-modal-canvas-wrap {
     box-shadow: none;
@@ -960,18 +934,6 @@ input[type='number'] {
     box-sizing: border-box;
 }
 
-.wm-overlay {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) rotate(45deg);
-    font-weight: bold;
-    pointer-events: none;
-    opacity: 0.3;
-    white-space: nowrap;
-    font-size: 20px;
-    z-index: 5;
-}
 .custom-badge {
     position: absolute;
     top: 4px;
