@@ -155,7 +155,8 @@ function renderSidebar() {
     NAV_ITEMS.forEach((item) => {
         if (item.type === 'section') {
             const label = document.createElement('div');
-            label.className = 'nav-label hide-on-mobile' + (isFirstSection ? '' : ' nav-label-spaced');
+            label.className =
+                'nav-label hide-on-mobile' + (isFirstSection ? '' : ' nav-label-spaced');
             label.textContent = item.label;
             sidebar.appendChild(label);
             isFirstSection = false;
@@ -184,8 +185,7 @@ function renderSidebar() {
 
 /** 绑定拖放区域 */
 function bindDropZone(elementOrId, options) {
-    const el = typeof elementOrId === 'string'
-        ? document.getElementById(elementOrId) : elementOrId;
+    const el = typeof elementOrId === 'string' ? document.getElementById(elementOrId) : elementOrId;
     if (!el) return;
     const { onDrop, accept } = options || {};
     el.addEventListener('dragover', (e) => {
@@ -202,15 +202,21 @@ function bindDropZone(elementOrId, options) {
 
 /** 设置状态消息（可自动恢复） */
 function setStatus(elementOrId, text, type, resetMs, resetText) {
-    const el = typeof elementOrId === 'string'
-        ? document.getElementById(elementOrId) : elementOrId;
+    const el = typeof elementOrId === 'string' ? document.getElementById(elementOrId) : elementOrId;
     if (!el) return;
     el.innerText = text;
-    const colorMap = { success: 'var(--success)', danger: 'var(--danger)',
-                       info: 'var(--text-sub)', ready: 'var(--text-main)' };
+    const colorMap = {
+        success: 'var(--success)',
+        danger: 'var(--danger)',
+        info: 'var(--text-sub)',
+        ready: 'var(--text-main)',
+    };
     el.style.color = colorMap[type || 'info'] || '';
     if (resetMs > 0 && resetText) {
-        setTimeout(() => { el.innerText = resetText; el.style.color = colorMap.info; }, resetMs);
+        setTimeout(() => {
+            el.innerText = resetText;
+            el.style.color = colorMap.info;
+        }, resetMs);
     }
 }
 
@@ -282,7 +288,15 @@ function initMobileNav() {
     document.body.appendChild(overlay);
 
     let isMobile = false;
+    let isDrawerOpen = false;
     let scrollY = 0;
+    const navPlaceholders = navBtns.map((navBtn) => {
+        const placeholder = document.createComment('nav-btn-placeholder');
+        sidebar.insertBefore(placeholder, navBtn);
+        return { navBtn, placeholder };
+    });
+    const themePlaceholder = document.createComment('theme-toggle-placeholder');
+    if (themeBtn) sidebar.insertBefore(themePlaceholder, themeBtn);
 
     function moveToDrawer() {
         navBtns.forEach((b) => drawer.appendChild(b));
@@ -291,8 +305,10 @@ function initMobileNav() {
     }
 
     function moveToSidebar() {
-        navBtns.forEach((b) => sidebar.insertBefore(b, btn));
-        if (themeBtn) sidebar.insertBefore(themeBtn, btn);
+        navPlaceholders.forEach(({ navBtn, placeholder }) => {
+            sidebar.insertBefore(navBtn, placeholder.nextSibling);
+        });
+        if (themeBtn) sidebar.insertBefore(themeBtn, themePlaceholder.nextSibling);
         if (spacer) spacer.style.display = '';
     }
 
@@ -319,15 +335,18 @@ function initMobileNav() {
         document.body.classList.toggle('mobile-nav-open', isOpen);
 
         if (isOpen) {
+            if (isDrawerOpen) return;
             scrollY = window.scrollY;
             document.body.style.position = 'fixed';
             document.body.style.top = -scrollY + 'px';
             document.body.style.width = '100%';
-        } else {
+            isDrawerOpen = true;
+        } else if (isDrawerOpen) {
             document.body.style.position = '';
             document.body.style.top = '';
             document.body.style.width = '';
             window.scrollTo(0, scrollY);
+            isDrawerOpen = false;
         }
     }
 
@@ -376,22 +395,37 @@ function prefetchUrl(url, asType) {
 
 function getPrefetchAssetList(pathname) {
     if (pathname.endsWith('/merge.html')) {
-        return ['js/vendor/pdf-lib.min.js', 'js/vendor/Sortable.min.js'];
+        return ['js/merge.js', 'js/vendor/pdf-lib.min.js', 'js/vendor/Sortable.min.js'];
     }
     if (pathname.endsWith('/split.html')) {
-        return ['js/vendor/pdf-lib.min.js', 'js/vendor/jszip.min.js'];
+        return ['js/split.js', 'js/vendor/pdf-lib.min.js', 'js/vendor/jszip.min.js'];
     }
     if (pathname.endsWith('/edit-pages.html')) {
-        return ['js/vendor/pdf.min.js', 'js/vendor/pdf.worker.min.js', 'js/vendor/pdf-lib.min.js'];
+        return [
+            'js/edit-pages.js',
+            'js/vendor/pdf.min.js',
+            'js/vendor/pdf.worker.min.js',
+            'js/vendor/pdf-lib.min.js',
+        ];
     }
     if (pathname.endsWith('/pdf-to-img.html')) {
-        return ['js/vendor/pdf.min.js', 'js/vendor/pdf.worker.min.js', 'js/vendor/jszip.min.js'];
+        return [
+            'js/pdf-to-img.js',
+            'js/vendor/pdf.min.js',
+            'js/vendor/pdf.worker.min.js',
+            'js/vendor/jszip.min.js',
+        ];
     }
     if (pathname.endsWith('/img-to-pdf.html')) {
-        return ['js/vendor/pdf-lib.min.js', 'js/vendor/Sortable.min.js'];
+        return ['js/img-to-pdf.js', 'js/vendor/pdf-lib.min.js', 'js/vendor/Sortable.min.js'];
     }
     if (pathname.endsWith('/watermark.html')) {
-        return ['js/vendor/pdf.min.js', 'js/vendor/pdf.worker.min.js', 'js/vendor/pdf-lib.min.js'];
+        return [
+            'js/watermark.js',
+            'js/vendor/pdf.min.js',
+            'js/vendor/pdf.worker.min.js',
+            'js/vendor/pdf-lib.min.js',
+        ];
     }
     return [];
 }

@@ -1,4 +1,4 @@
-const CACHE_VERSION = '2026-04-28-6';
+const CACHE_VERSION = '2026-04-28-7';
 const STATIC_CACHE = `pdf-toolbox-static-${CACHE_VERSION}`;
 const PAGE_CACHE = `pdf-toolbox-page-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `pdf-toolbox-runtime-${CACHE_VERSION}`;
@@ -72,57 +72,9 @@ function fetchWithCacheMode(request, cacheMode) {
     return fetch(request, { cache: cacheMode });
 }
 
-async function networkFirst(request, cacheName, options = {}) {
-    const { timeoutMs = 0, cacheMode = null, fallbackUrl = './index.html' } = options;
-    const cache = await caches.open(cacheName);
-    let timeoutId = null;
-    let timedOut = false;
-    let timeoutPromise = null;
-
-    if (timeoutMs > 0) {
-        timeoutPromise = new Promise((resolve) => {
-            timeoutId = setTimeout(() => {
-                timedOut = true;
-                resolve(null);
-            }, timeoutMs);
-        });
-    }
-
-    try {
-        const networkPromise = fetchWithCacheMode(request, cacheMode).then(async (response) => {
-            if (timeoutId !== null) clearTimeout(timeoutId);
-            return cachePut(cacheName, request, response);
-        });
-        const networkResponse =
-            timeoutMs > 0
-                ? await Promise.race([networkPromise, timeoutPromise])
-                : await networkPromise;
-        if (networkResponse) return networkResponse;
-    } catch {
-        // 网络失败时回退缓存
-    }
-
-    const cached = await cache.match(request);
-    if (cached) return cached;
-
-    if (timedOut) {
-        try {
-            const fallbackResponse = await fetchWithCacheMode(request, cacheMode);
-            return cachePut(cacheName, request, fallbackResponse);
-        } catch {
-            // 忽略，交给后续兜底
-        }
-    }
-
-    if (!fallbackUrl) return Response.error();
-
-    const fallback = await caches.match(fallbackUrl);
-    return fallback || Response.error();
-}
-
 async function staleWhileRevalidate(request, cacheName) {
     const cache = await caches.open(cacheName);
-    const cached = await cache.match(request);
+    const cached = (await cache.match(request)) || (await caches.match(request));
 
     const networkPromise = fetch(request)
         .then((response) => cachePut(cacheName, request, response))
@@ -137,7 +89,7 @@ async function staleWhileRevalidate(request, cacheName) {
 
 async function fastCacheThenUpdate(request, cacheName, fallbackUrl = './index.html') {
     const cache = await caches.open(cacheName);
-    const cached = await cache.match(request);
+    const cached = (await cache.match(request)) || (await caches.match(request));
 
     const networkPromise = fetchWithCacheMode(request, 'reload')
         .then((response) => cachePut(cacheName, request, response))

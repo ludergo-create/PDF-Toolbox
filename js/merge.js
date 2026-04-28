@@ -54,8 +54,7 @@ function clearMergeList() {
 function updateMergeListStatus() {
     const count = mergeFilesMap.size;
     document.getElementById('mergeFileCount').innerText = `共 ${count} 个文件`;
-    document.getElementById('mergeEmptyTip').style.display =
-        count > 0 ? 'none' : 'block';
+    document.getElementById('mergeEmptyTip').style.display = count > 0 ? 'none' : 'block';
 
     const statusText = document.getElementById('mergeStatusText');
     const btn = document.getElementById('runMergeBtn');
@@ -115,9 +114,7 @@ async function runMerge() {
 
         status.innerText = '正在生成最终文件...';
         const pdfBytes = await mergedPdf.save();
-        const firstOrderedFile = mergeFilesMap.get(
-            orderedItems[0].getAttribute('data-id')
-        );
+        const firstOrderedFile = mergeFilesMap.get(orderedItems[0].getAttribute('data-id'));
         const baseName = firstOrderedFile.name.replace(/\.pdf$/i, '');
         triggerDownload(pdfBytes, `${baseName}_合并.pdf`);
 

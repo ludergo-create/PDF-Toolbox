@@ -124,9 +124,7 @@ function updatePreviewModalState() {
     const state = pagesState[currentPreviewIdx];
     document.getElementById('previewModalRotateContainer').style.transform =
         `rotate(${state.rotation}deg)`;
-    document.getElementById('previewModalMask').style.display = state.deleted
-        ? 'flex'
-        : 'none';
+    document.getElementById('previewModalMask').style.display = state.deleted ? 'flex' : 'none';
     document.getElementById('previewModalDelBtn').innerText = state.deleted
         ? '🔄 恢复页面'
         : '🗑️ 删除页面';
@@ -357,9 +355,7 @@ async function runEdit() {
                 if (extraRot !== 0) {
                     const page = newDoc.getPage(i);
                     const currentAngle = page.getRotation().angle;
-                    page.setRotation(
-                        degrees(normalizePageRotation(currentAngle + extraRot))
-                    );
+                    page.setRotation(degrees(normalizePageRotation(currentAngle + extraRot)));
                 }
             }
         }

@@ -26,11 +26,7 @@ function parsePageNumber(value, label) {
     }
 
     const pageNumber = Number.parseInt(text, 10);
-    if (
-        !Number.isSafeInteger(pageNumber) ||
-        pageNumber < 1 ||
-        pageNumber > splitTotalPages
-    ) {
+    if (!Number.isSafeInteger(pageNumber) || pageNumber < 1 || pageNumber > splitTotalPages) {
         throw new Error(`${label}必须在 1 - ${splitTotalPages} 之间。`);
     }
 
@@ -134,14 +130,8 @@ async function runSplit() {
                 exportTasks.push({ suffix: `${i + 1}`, pages: [i] });
             }
         } else if (mode === 'range') {
-            const start = parsePageNumber(
-                document.getElementById('rangeStart').value,
-                '起始页码'
-            );
-            const end = parsePageNumber(
-                document.getElementById('rangeEnd').value,
-                '结束页码'
-            );
+            const start = parsePageNumber(document.getElementById('rangeStart').value, '起始页码');
+            const end = parsePageNumber(document.getElementById('rangeEnd').value, '结束页码');
             if (start > end) {
                 throw new Error('范围无效，起始页不能大于结束页。');
             }

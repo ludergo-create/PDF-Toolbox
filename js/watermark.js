@@ -20,10 +20,7 @@ const wmModalFitBtn = document.getElementById('wmModalFitBtn');
 const modalClearCustomBtn = document.getElementById('modalClearCustomBtn');
 const modalCancelBtn = document.getElementById('modalCancelBtn');
 const modalSaveCustomBtn = document.getElementById('modalSaveCustomBtn');
-const wmModalFocus = createModalFocusManager(
-    document.getElementById('wmModal'),
-    closeModal
-);
+const wmModalFocus = createModalFocusManager(document.getElementById('wmModal'), closeModal);
 
 wmFileInput.addEventListener('change', handleWmFileAdded);
 wmResetBtn.addEventListener('click', resetWmFile);
@@ -127,8 +124,7 @@ function fitModalToWindow() {
 function applyModalTransform() {
     const container = document.getElementById('modalZoomContainer');
     container.style.transform = `translate(${modalPanX}px, ${modalPanY}px) scale(${modalZoom})`;
-    document.getElementById('modalZoomLevel').innerText =
-        Math.round(modalZoom * 100) + '%';
+    document.getElementById('modalZoomLevel').innerText = Math.round(modalZoom * 100) + '%';
 }
 
 function getGlobalConfig() {
@@ -221,13 +217,9 @@ function renderWatermarkOnCanvas(ctx, canvasWidth, canvasHeight, config, scale =
         ctx.textAlign = 'left';
 
         // 计算覆盖范围 (稍微多算一点以防旋转后留白)
-        const diagonal = Math.sqrt(
-            canvasWidth * canvasWidth + canvasHeight * canvasHeight
-        );
-        const stepX =
-            textW + (config.gapX !== undefined ? config.gapX : 100) * 0.6 * scale;
-        const stepY =
-            textH + (config.gapY !== undefined ? config.gapY : 100) * 0.6 * scale;
+        const diagonal = Math.sqrt(canvasWidth * canvasWidth + canvasHeight * canvasHeight);
+        const stepX = textW + (config.gapX !== undefined ? config.gapX : 100) * 0.6 * scale;
+        const stepY = textH + (config.gapY !== undefined ? config.gapY : 100) * 0.6 * scale;
 
         const startX = -diagonal / 2;
         const endX = diagonal / 2;
@@ -419,12 +411,8 @@ function updateModalPreview() {
     const config = getModalConfig();
     // 根据排布模式显隐间距滑块
     const hideGapControls = config.mode === 'single';
-    document
-        .getElementById('modalGapXGroup')
-        .classList.toggle('u-hidden', hideGapControls);
-    document
-        .getElementById('modalGapYGroup')
-        .classList.toggle('u-hidden', hideGapControls);
+    document.getElementById('modalGapXGroup').classList.toggle('u-hidden', hideGapControls);
+    document.getElementById('modalGapYGroup').classList.toggle('u-hidden', hideGapControls);
 
     const wmCanvas = document.getElementById('modalWmCanvas');
     const ctx = wmCanvas.getContext('2d');

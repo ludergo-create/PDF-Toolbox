@@ -19,8 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('layoutToggle').addEventListener('click', toggleLayout);
 
     /** 恢复上次用户选择的布局偏好 */
-    const homeLayout =
-        typeof safeStorageGet === 'function' ? safeStorageGet('homeLayout') : null;
+    const homeLayout = typeof safeStorageGet === 'function' ? safeStorageGet('homeLayout') : null;
     if (homeLayout === 'compact') {
         document.getElementById('homeGrid').classList.add('compact');
         document.getElementById('layoutToggle').innerHTML = '☰ 单列';

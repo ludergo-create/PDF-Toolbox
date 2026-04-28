@@ -83,12 +83,21 @@ function updateImgListStatus() {
 }
 
 const dropZone = document.getElementById('imgDropZone');
-dropZone.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
-dropZone.addEventListener('drop', (e) => { e.preventDefault(); addImgsToList(e.dataTransfer.files); });
+dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+});
+dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    addImgsToList(e.dataTransfer.files);
+});
 
 async function runImgToPdf() {
     const orderedItems = document.querySelectorAll('#sortableImgList .file-item');
-    if (orderedItems.length < 1) { alert('请选择至少 1 张图片！'); return; }
+    if (orderedItems.length < 1) {
+        alert('请选择至少 1 张图片！');
+        return;
+    }
     const btn = document.getElementById('runImg2PdfBtn');
     const status = document.getElementById('imgStatusText');
     btn.disabled = true;
@@ -103,9 +112,13 @@ async function runImgToPdf() {
             const file = imgsMap.get(item.getAttribute('data-id'));
             const arrayBuffer = await file.arrayBuffer();
             let image;
-            if (isJpegFile(file)) { image = await pdfDoc.embedJpg(arrayBuffer); }
-            else if (isPngFile(file)) { image = await pdfDoc.embedPng(arrayBuffer); }
-            else { continue; }
+            if (isJpegFile(file)) {
+                image = await pdfDoc.embedJpg(arrayBuffer);
+            } else if (isPngFile(file)) {
+                image = await pdfDoc.embedPng(arrayBuffer);
+            } else {
+                continue;
+            }
             const dims = image.scale(1);
             const page = pdfDoc.addPage([dims.width, dims.height]);
             page.drawImage(image, { x: 0, y: 0, width: dims.width, height: dims.height });
@@ -122,6 +135,8 @@ async function runImgToPdf() {
     } finally {
         btn.disabled = false;
         btn.innerText = '合并为 PDF';
-        setTimeout(() => { updateImgListStatus(); }, 4000);
+        setTimeout(() => {
+            updateImgListStatus();
+        }, 4000);
     }
 }

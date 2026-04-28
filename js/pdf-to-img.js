@@ -114,9 +114,7 @@ async function runPdfToImg() {
             await page.render(renderContext).promise;
 
             // Convert canvas to blob
-            const blob = await new Promise((resolve) =>
-                canvas.toBlob(resolve, format, 0.9)
-            );
+            const blob = await new Promise((resolve) => canvas.toBlob(resolve, format, 0.9));
             zip.file(`${baseName}_${i}.${ext}`, blob);
         }
 
