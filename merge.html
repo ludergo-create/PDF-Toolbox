@@ -1,179 +1,249 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>合并 PDF 文件 - 免费在线工具 | PDF 工具箱</title>
-    <meta name="description" content="免费在线合并多个 PDF 文件，支持拖拽排序。所有文件均在浏览器本地处理，不上传服务器，保护您的隐私安全。">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.8em' font-size='100' fill='%236C63FF'>◈</text></svg>">
-    
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
-    <script src="js/common.js"></script>
-    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-    <style>
-        #nav-merge { background-color: var(--primary-soft); color: var(--primary); font-weight: bold; }
-    </style>
-</head>
-<body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>合并 PDF 文件 - 免费在线工具 | PDF 工具箱</title>
+        <meta
+            name="description"
+            content="免费在线合并多个 PDF 文件，支持拖拽排序。所有文件均在浏览器本地处理，不上传服务器，保护您的隐私安全。"
+        />
+        <link
+            rel="icon"
+            href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.8em' font-size='100' fill='%236C63FF'>◈</text></svg>"
+        />
 
-    <div class="trust-banner">🔒 纯本地处理：所有操作均在浏览器内完成，文件绝不上传服务器，保护您的隐私安全。</div>
-
-    <div class="app-body">
-        
-        <!-- SIDEBAR -->
-        <div class="sidebar">
-            <a href="index.html" class="logo-area">
-                <div class="logo-icon">◈</div>
-                <div class="logo-title">PDF 工具箱</div>
-            </a>
-            <div class="divider"></div>
-            
-            <div class="nav-label hide-on-mobile">工具导航</div>
-            <a href="index.html" class="nav-btn" id="nav-home">首页</a>
-            
-            <div class="nav-label hide-on-mobile" style="margin-top: 12px;">核心处理</div>
-            <a href="merge.html" class="nav-btn" id="nav-merge">合并 PDF</a>
-            <a href="split.html" class="nav-btn" id="nav-split">拆分 / 提取</a>
-            <a href="edit-pages.html" class="nav-btn" id="nav-edit">旋转与删除</a>
-            
-            <div class="nav-label hide-on-mobile" style="margin-top: 12px;">格式转换</div>
-            <a href="pdf-to-img.html" class="nav-btn" id="nav-pdf2img">PDF 转图片</a>
-            <a href="img-to-pdf.html" class="nav-btn" id="nav-img2pdf">图片转 PDF</a>
-            
-            <div class="nav-label hide-on-mobile" style="margin-top: 12px;">安全与保护</div>
-            <a href="watermark.html" class="nav-btn" id="nav-watermark">PDF 加水印</a>
-
-            <div class="spacer"></div>
-            <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">切换深色</button>
+        <link rel="stylesheet" href="css/style.css" />
+        <script src="js/common.js"></script>
+        <script src="js/vendor/pdf-lib.min.js"></script>
+        <script src="js/vendor/Sortable.min.js"></script>
+        <style>
+            #nav-merge {
+                background-color: var(--primary-soft);
+                color: var(--primary);
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="trust-banner">
+            🔒 纯本地处理：所有操作均在浏览器内完成，文件绝不上传服务器，保护您的隐私安全。
         </div>
 
-        <!-- MAIN CONTENT -->
-        <div class="main-content">
-            
-            <div class="page-view">
-                <div class="header">
-                    <h1>合并 PDF 文件</h1>
-                    <span class="badge">拖拽排序</span>
-                </div>
-                
-                <div class="card card-stretch">
-                    <div class="toolbar">
-                        <label for="addFilesInput" class="btn btn-primary">＋ 选择文件</label>
-                        <input type="file" id="addFilesInput" multiple accept="application/pdf,.pdf" onchange="handleMergeFilesAdded(event)">
-                        <button class="btn btn-outline" onclick="clearMergeList()">清空列表</button>
-                        <span style="flex-grow:1; text-align:right; color:var(--text-dim); font-size:12px;" id="mergeFileCount">共 0 个文件</span>
-                    </div>
-                    <div style="font-size: 12px; color: var(--text-dim); margin-bottom: 12px;">建议单文件 &lt; 100MB，超大文件可能导致浏览器卡顿。</div>
-                    
-                    <div class="file-list-wrapper" id="mergeDropZone">
-                        <ul class="file-list" id="sortableList"></ul>
-                        <div class="empty-tip" id="mergeEmptyTip">点击上方按钮选择 PDF 文件<span class="hide-on-mobile">，或直接拖拽到此处</span></div>
-                    </div>
-                </div>
+        <div class="app-body">
+            <!-- SIDEBAR -->
+            <div class="sidebar">
+                <a href="index.html" class="logo-area">
+                    <div class="logo-icon">◈</div>
+                    <div class="logo-title">PDF 工具箱</div>
+                </a>
+                <div class="divider"></div>
 
-                <div class="card action-card" style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <span style="color: var(--text-sub); font-size: 13px;" id="mergeStatusText">请选择至少 2 个 PDF 文件</span>
-                    <button class="btn btn-run" id="runMergeBtn" onclick="runMerge()" disabled>开始合并</button>
-                </div>
-                
-                <div style="flex-grow: 1;"></div>
-                <div class="footer">
-                    <p>PDF 工具箱 © 2026 | <a href="javascript:alert('该工具纯前端本地处理，您的文件不会上传至任何服务器。')">隐私说明</a></p>
-                </div>
+                <div class="nav-label hide-on-mobile">工具导航</div>
+                <a href="index.html" class="nav-btn" id="nav-home">首页</a>
+
+                <div class="nav-label hide-on-mobile nav-label-spaced">核心处理</div>
+                <a href="merge.html" class="nav-btn" id="nav-merge">合并 PDF</a>
+                <a href="split.html" class="nav-btn" id="nav-split">拆分 / 提取</a>
+                <a href="edit-pages.html" class="nav-btn" id="nav-edit">旋转与删除</a>
+
+                <div class="nav-label hide-on-mobile nav-label-spaced">格式转换</div>
+                <a href="pdf-to-img.html" class="nav-btn" id="nav-pdf2img">PDF 转图片</a>
+                <a href="img-to-pdf.html" class="nav-btn" id="nav-img2pdf">图片转 PDF</a>
+
+                <div class="nav-label hide-on-mobile nav-label-spaced">安全与保护</div>
+                <a href="watermark.html" class="nav-btn" id="nav-watermark">PDF 加水印</a>
+
+                <div class="spacer"></div>
+                <button class="theme-toggle" id="themeBtn">切换深色</button>
             </div>
 
+            <!-- MAIN CONTENT -->
+            <div class="main-content">
+                <div class="page-view">
+                    <div class="header">
+                        <h1>合并 PDF 文件</h1>
+                        <span class="badge">拖拽排序</span>
+                    </div>
+
+                    <div class="card card-stretch">
+                        <div class="toolbar">
+                            <label for="addFilesInput" class="btn btn-primary">＋ 选择文件</label>
+                            <input
+                                type="file"
+                                id="addFilesInput"
+                                multiple
+                                accept="application/pdf,.pdf"
+                            />
+                            <button class="btn btn-outline" id="clearMergeBtn">清空列表</button>
+                            <span class="u-toolbar-count" id="mergeFileCount">共 0 个文件</span>
+                        </div>
+                        <div class="u-hint-text">
+                            建议单文件 &lt; 100MB，超大文件可能导致浏览器卡顿。
+                        </div>
+
+                        <div class="file-list-wrapper" id="mergeDropZone">
+                            <ul class="file-list" id="sortableList"></ul>
+                            <div class="empty-tip" id="mergeEmptyTip">
+                                点击上方按钮选择 PDF 文件<span class="hide-on-mobile"
+                                    >，或直接拖拽到此处</span
+                                >
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card action-card">
+                        <span class="u-status-text" id="mergeStatusText"
+                            >请选择至少 2 个 PDF 文件</span
+                        >
+                        <button class="btn btn-run" id="runMergeBtn" disabled>开始合并</button>
+                    </div>
+
+                    <div class="u-flex-grow"></div>
+                    <div class="footer">
+                        <p>PDF 工具箱 © 2026 | <a href="#" class="privacy-link">隐私说明</a></p>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <script>
-        let mergeFilesMap = new Map();
-        const sortableListEl = document.getElementById('sortableList');
-        new Sortable(sortableListEl, { animation: 150 });
+        <script>
+            const mergeFilesMap = new Map();
+            const sortableListEl = document.getElementById('sortableList');
+            const addFilesInput = document.getElementById('addFilesInput');
+            const clearMergeBtn = document.getElementById('clearMergeBtn');
+            const runMergeBtn = document.getElementById('runMergeBtn');
 
-        function handleMergeFilesAdded(event) { addFilesToMergeList(event.target.files); event.target.value = ""; }
-        
-        function addFilesToMergeList(files) {
-            for (let file of files) {
-                if (file.type !== "application/pdf") continue;
-                const id = generateId();
-                mergeFilesMap.set(id, file);
-                const li = document.createElement('li');
-                li.className = 'file-item';
-                li.setAttribute('data-id', id);
-                li.innerHTML = `<span>📄 ${file.name}</span><span class="remove-icon" title="删除" onclick="removeMergeFile('${id}', this)">✖</span>`;
-                sortableListEl.appendChild(li);
+            addFilesInput.addEventListener('change', handleMergeFilesAdded);
+            clearMergeBtn.addEventListener('click', clearMergeList);
+            runMergeBtn.addEventListener('click', runMerge);
+
+            new Sortable(sortableListEl, { animation: 150 });
+
+            function handleMergeFilesAdded(event) {
+                addFilesToMergeList(event.target.files);
+                event.target.value = '';
             }
-            updateMergeListStatus();
-        }
 
-        function removeMergeFile(id, el) { mergeFilesMap.delete(id); el.parentElement.remove(); updateMergeListStatus(); }
-        function clearMergeList() { mergeFilesMap.clear(); sortableListEl.innerHTML = ''; updateMergeListStatus(); }
-        
-        function updateMergeListStatus() {
-            const count = mergeFilesMap.size;
-            document.getElementById('mergeFileCount').innerText = `共 ${count} 个文件`;
-            document.getElementById('mergeEmptyTip').style.display = count > 0 ? 'none' : 'block';
-            
-            const statusText = document.getElementById('mergeStatusText');
-            const btn = document.getElementById('runMergeBtn');
-            if (count < 2) {
-                statusText.innerText = "请选择至少 2 个 PDF 文件";
-                statusText.style.color = "var(--text-sub)";
-                btn.disabled = true;
-            } else {
-                statusText.innerText = `已准备 ${count} 个文件，可以开始合并`;
-                statusText.style.color = "var(--text-main)";
-                btn.disabled = false;
+            function addFilesToMergeList(files) {
+                for (const file of files) {
+                    if (!isPdfFile(file)) continue;
+                    const id = generateId();
+                    mergeFilesMap.set(id, file);
+                    const li = document.createElement('li');
+                    li.className = 'file-item';
+                    li.setAttribute('data-id', id);
+
+                    const fileNameEl = document.createElement('span');
+                    fileNameEl.textContent = `📄 ${file.name}`;
+
+                    const removeIconEl = document.createElement('span');
+                    removeIconEl.className = 'remove-icon';
+                    removeIconEl.title = '删除';
+                    removeIconEl.textContent = '✖';
+                    removeIconEl.addEventListener('click', () => removeMergeFile(id, removeIconEl));
+
+                    li.appendChild(fileNameEl);
+                    li.appendChild(removeIconEl);
+                    sortableListEl.appendChild(li);
+                }
+                updateMergeListStatus();
             }
-        }
 
-        const mergeDropZone = document.getElementById('mergeDropZone');
-        mergeDropZone.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
-        mergeDropZone.addEventListener('drop', (e) => { e.preventDefault(); addFilesToMergeList(e.dataTransfer.files); });
-        
-        mergeDropZone.style.cursor = 'pointer';
-        mergeDropZone.addEventListener('click', (e) => {
-            if (e.target.closest('.file-item')) return;
-            document.getElementById('addFilesInput').click();
-        });
+            function removeMergeFile(id, el) {
+                mergeFilesMap.delete(id);
+                el.parentElement.remove();
+                updateMergeListStatus();
+            }
+            function clearMergeList() {
+                mergeFilesMap.clear();
+                sortableListEl.innerHTML = '';
+                updateMergeListStatus();
+            }
 
-        async function runMerge() {
-            const orderedItems = document.querySelectorAll('#sortableList .file-item');
-            if (orderedItems.length < 2) { alert("请至少添加 2 个 PDF 文件！"); return; }
+            function updateMergeListStatus() {
+                const count = mergeFilesMap.size;
+                document.getElementById('mergeFileCount').innerText = `共 ${count} 个文件`;
+                document.getElementById('mergeEmptyTip').style.display =
+                    count > 0 ? 'none' : 'block';
 
-            const btn = document.getElementById('runMergeBtn');
-            const status = document.getElementById('mergeStatusText');
-            btn.disabled = true; btn.innerText = "处理中...";
-            status.innerText = "正在拼接文档，请稍候...";
+                const statusText = document.getElementById('mergeStatusText');
+                const btn = document.getElementById('runMergeBtn');
+                if (count < 2) {
+                    statusText.innerText = '请选择至少 2 个 PDF 文件';
+                    statusText.style.color = 'var(--text-sub)';
+                    btn.disabled = true;
+                } else {
+                    statusText.innerText = `已准备 ${count} 个文件，可以开始合并`;
+                    statusText.style.color = 'var(--text-main)';
+                    btn.disabled = false;
+                }
+            }
 
-            try {
-                const { PDFDocument } = PDFLib;
-                const mergedPdf = await PDFDocument.create();
+            const mergeDropZone = document.getElementById('mergeDropZone');
+            mergeDropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
+            });
+            mergeDropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                addFilesToMergeList(e.dataTransfer.files);
+            });
 
-                for (let i = 0; i < orderedItems.length; i++) {
-                    const item = orderedItems[i];
-                    status.innerText = `正在合并第 ${i + 1} / ${orderedItems.length} 个文件...`;
-                    const file = mergeFilesMap.get(item.getAttribute('data-id'));
-                    const arrayBuffer = await file.arrayBuffer();
-                    const pdf = await PDFDocument.load(arrayBuffer);
-                    const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
-                    copiedPages.forEach((page) => mergedPdf.addPage(page));
+            mergeDropZone.style.cursor = 'pointer';
+            mergeDropZone.addEventListener('click', (e) => {
+                if (e.target.closest('.file-item')) return;
+                document.getElementById('addFilesInput').click();
+            });
+
+            async function runMerge() {
+                const orderedItems = document.querySelectorAll('#sortableList .file-item');
+                if (orderedItems.length < 2) {
+                    alert('请至少添加 2 个 PDF 文件！');
+                    return;
                 }
 
-                status.innerText = "正在生成最终文件...";
-                const pdfBytes = await mergedPdf.save();
-                triggerDownload(pdfBytes, `${mergeFilesMap.values().next().value.name.replace('.pdf', '')}_合并.pdf`);
-                
-                status.innerText = "✅ 下载合并后的 PDF"; status.style.color = "var(--success)";
-            } catch (e) {
-                console.error(e); status.innerText = "❌ 合并失败，可能由于加密或格式不受支持。"; status.style.color = "var(--danger)";
-            } finally {
-                btn.disabled = false; btn.innerText = "开始合并";
-                setTimeout(() => { updateMergeListStatus(); }, 4000);
+                const btn = document.getElementById('runMergeBtn');
+                const status = document.getElementById('mergeStatusText');
+                btn.disabled = true;
+                btn.innerText = '处理中...';
+                status.innerText = '正在拼接文档，请稍候...';
+
+                try {
+                    const { PDFDocument } = PDFLib;
+                    const mergedPdf = await PDFDocument.create();
+
+                    for (let i = 0; i < orderedItems.length; i++) {
+                        const item = orderedItems[i];
+                        status.innerText = `正在合并第 ${i + 1} / ${orderedItems.length} 个文件...`;
+                        const file = mergeFilesMap.get(item.getAttribute('data-id'));
+                        const arrayBuffer = await file.arrayBuffer();
+                        const pdf = await PDFDocument.load(arrayBuffer);
+                        const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+                        copiedPages.forEach((page) => mergedPdf.addPage(page));
+                    }
+
+                    status.innerText = '正在生成最终文件...';
+                    const pdfBytes = await mergedPdf.save();
+                    triggerDownload(
+                        pdfBytes,
+                        `${mergeFilesMap.values().next().value.name.replace('.pdf', '')}_合并.pdf`
+                    );
+
+                    status.innerText = '✅ 下载合并后的 PDF';
+                    status.style.color = 'var(--success)';
+                } catch (e) {
+                    console.error(e);
+                    status.innerText = '❌ 合并失败，可能由于加密或格式不受支持。';
+                    status.style.color = 'var(--danger)';
+                } finally {
+                    btn.disabled = false;
+                    btn.innerText = '开始合并';
+                    setTimeout(() => {
+                        updateMergeListStatus();
+                    }, 4000);
+                }
             }
-        }
-    </script>
-</body>
+        </script>
+    </body>
 </html>

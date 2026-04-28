@@ -1,0 +1,4 @@
+.git/
+node_modules/
+测试PDF.pdf
+js/vendor/**/*.js

@@ -1,12 +1,29 @@
 // ================= 全局基础逻辑 =================
 
+function safeStorageGet(key) {
+    try {
+        return window.localStorage.getItem(key);
+    } catch {
+        return null;
+    }
+}
+
+function safeStorageSet(key, value) {
+    try {
+        window.localStorage.setItem(key, value);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 // 初始化主题
 function initTheme() {
-    const isDark = localStorage.getItem('theme') === 'dark';
+    const isDark = safeStorageGet('theme') === 'dark';
     if (isDark) {
         document.documentElement.setAttribute('data-theme', 'dark');
         const btn = document.getElementById('themeBtn');
-        if (btn) btn.innerText = "切换浅色";
+        if (btn) btn.innerText = '切换浅色';
     }
 }
 
@@ -15,24 +32,77 @@ function toggleTheme() {
     const btn = document.getElementById('themeBtn');
     if (isDark) {
         document.documentElement.removeAttribute('data-theme');
-        localStorage.setItem('theme', 'light');
-        if (btn) btn.innerText = "切换深色";
+        safeStorageSet('theme', 'light');
+        if (btn) btn.innerText = '切换深色';
     } else {
         document.documentElement.setAttribute('data-theme', 'dark');
-        localStorage.setItem('theme', 'dark');
-        if (btn) btn.innerText = "切换浅色";
+        safeStorageSet('theme', 'dark');
+        if (btn) btn.innerText = '切换浅色';
     }
 }
 
-function generateId() { return Math.random().toString(36).substr(2, 9); }
+function generateId() {
+    return Math.random().toString(36).substr(2, 9);
+}
+
+function hasFileExtension(fileName, extensions) {
+    if (!fileName) return false;
+    const lower = fileName.toLowerCase();
+    return extensions.some((ext) => lower.endsWith(ext));
+}
+
+function isPdfFile(file) {
+    if (!file) return false;
+    const mime = (file.type || '').toLowerCase();
+    return mime === 'application/pdf' || hasFileExtension(file.name, ['.pdf']);
+}
+
+function isJpegFile(file) {
+    if (!file) return false;
+    const mime = (file.type || '').toLowerCase();
+    return mime === 'image/jpeg' || hasFileExtension(file.name, ['.jpg', '.jpeg']);
+}
+
+function isPngFile(file) {
+    if (!file) return false;
+    const mime = (file.type || '').toLowerCase();
+    return mime === 'image/png' || hasFileExtension(file.name, ['.png']);
+}
+
+function isImageFile(file) {
+    return isJpegFile(file) || isPngFile(file);
+}
 
 function triggerDownload(bytes, filename, mimeType = 'application/pdf') {
     const blob = new Blob([bytes], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = filename;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function showPrivacyNotice() {
+    alert('该工具纯前端本地处理，您的文件不会上传至任何服务器。');
+}
+
+function bindThemeToggleButton() {
+    const btn = document.getElementById('themeBtn');
+    if (!btn) return;
+    btn.addEventListener('click', toggleTheme);
+}
+
+function bindPrivacyNoticeLinks() {
+    const links = document.querySelectorAll('.privacy-link');
+    links.forEach((link) => {
+        link.addEventListener('click', (event) => {
+            event.preventDefault();
+            showPrivacyNotice();
+        });
+    });
 }
 
 function initMobileNav() {
@@ -52,9 +122,18 @@ function initMobileNav() {
     // 抽屉容器
     const drawer = document.createElement('div');
     drawer.className = 'mobile-drawer';
-    drawer.innerHTML = '<button class="mobile-drawer-close" aria-label="关闭工具导航">×</button><div class="mobile-drawer-title">PDF 工具箱</div>';
 
-    const closeBtn = drawer.querySelector('.mobile-drawer-close');
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'mobile-drawer-close';
+    closeBtn.setAttribute('aria-label', '关闭工具导航');
+    closeBtn.innerText = '×';
+
+    const drawerTitle = document.createElement('div');
+    drawerTitle.className = 'mobile-drawer-title';
+    drawerTitle.innerText = 'PDF 工具箱';
+    drawer.appendChild(closeBtn);
+    drawer.appendChild(drawerTitle);
 
     // 需要移入/移出的元素
     const navBtns = Array.from(sidebar.querySelectorAll('.nav-btn'));
@@ -69,13 +148,13 @@ function initMobileNav() {
     let scrollY = 0;
 
     function moveToDrawer() {
-        navBtns.forEach(b => drawer.appendChild(b));
+        navBtns.forEach((b) => drawer.appendChild(b));
         if (themeBtn) drawer.appendChild(themeBtn);
         if (spacer) spacer.style.display = 'none';
     }
 
     function moveToSidebar() {
-        navBtns.forEach(b => sidebar.insertBefore(b, btn));
+        navBtns.forEach((b) => sidebar.insertBefore(b, btn));
         if (themeBtn) sidebar.insertBefore(themeBtn, btn);
         if (spacer) spacer.style.display = '';
     }
@@ -90,6 +169,7 @@ function initMobileNav() {
             moveToDrawer();
             isMobile = true;
         } else if (!shouldBeMobile && isMobile) {
+            setMobileNavOpen(false);
             moveToSidebar();
             isMobile = false;
         }
@@ -98,6 +178,7 @@ function initMobileNav() {
     function setMobileNavOpen(isOpen) {
         drawer.classList.toggle('open', isOpen);
         overlay.classList.toggle('is-visible', isOpen);
+        overlay.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
         document.body.classList.toggle('mobile-nav-open', isOpen);
 
         if (isOpen) {
@@ -113,7 +194,9 @@ function initMobileNav() {
         }
     }
 
-    function closeDrawer() { setMobileNavOpen(false); }
+    function closeDrawer() {
+        setMobileNavOpen(false);
+    }
 
     btn.addEventListener('click', () => setMobileNavOpen(true));
     closeBtn.addEventListener('click', closeDrawer);
@@ -136,5 +219,7 @@ function initMobileNav() {
 // 页面加载完成后初始化主题
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
+    bindThemeToggleButton();
     initMobileNav();
+    bindPrivacyNoticeLinks();
 });

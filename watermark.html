@@ -1,672 +1,924 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF 加水印 - 免费在线工具 | PDF 工具箱</title>
-    <meta name="description" content="实时预览水印效果，双击单页可独立定制。完美支持中文，本地浏览器处理，绝对安全。">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.8em' font-size='100' fill='%236C63FF'>◈</text></svg>">
-    
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
-    <script src="js/common.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
-    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-    <style>
-        #nav-watermark { background-color: var(--primary-soft); color: var(--primary); font-weight: bold; }
-        .setting-group { margin-bottom: 12px; }
-        .setting-group label { display: block; font-weight: bold; font-size: 13px; margin-bottom: 6px; color: var(--text-main); }
-        .wm-canvas-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
-        .modal-right { overflow-y: visible; }
-        .modal-right-scroll { flex: 1; overflow-y: auto; min-height: 0; }
-        .modal-right-actions { flex-shrink: 0; border-top: 1px solid var(--divider); padding-top: 16px; }
-    </style>
-</head>
-<body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>PDF 加水印 - 免费在线工具 | PDF 工具箱</title>
+        <meta
+            name="description"
+            content="实时预览水印效果，双击单页可独立定制。完美支持中文，本地浏览器处理，绝对安全。"
+        />
+        <link
+            rel="icon"
+            href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.8em' font-size='100' fill='%236C63FF'>◈</text></svg>"
+        />
 
-    <div class="trust-banner">🔒 纯本地处理：所有操作均在浏览器内完成，文件绝不上传服务器，保护您的隐私安全。</div>
-
-    <div class="app-body">
-        
-        <!-- SIDEBAR -->
-        <div class="sidebar">
-            <a href="index.html" class="logo-area">
-                <div class="logo-icon">◈</div>
-                <div class="logo-title">PDF 工具箱</div>
-            </a>
-            <div class="divider"></div>
-            
-            <div class="nav-label hide-on-mobile">工具导航</div>
-            <a href="index.html" class="nav-btn" id="nav-home">首页</a>
-            
-            <div class="nav-label hide-on-mobile" style="margin-top: 12px;">核心处理</div>
-            <a href="merge.html" class="nav-btn" id="nav-merge">合并 PDF</a>
-            <a href="split.html" class="nav-btn" id="nav-split">拆分 / 提取</a>
-            <a href="edit-pages.html" class="nav-btn" id="nav-edit">旋转与删除</a>
-            
-            <div class="nav-label hide-on-mobile" style="margin-top: 12px;">格式转换</div>
-            <a href="pdf-to-img.html" class="nav-btn" id="nav-pdf2img">PDF 转图片</a>
-            <a href="img-to-pdf.html" class="nav-btn" id="nav-img2pdf">图片转 PDF</a>
-            
-            <div class="nav-label hide-on-mobile" style="margin-top: 12px;">安全与保护</div>
-            <a href="watermark.html" class="nav-btn" id="nav-watermark">PDF 加水印</a>
-
-            <div class="spacer"></div>
-            <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">切换深色</button>
+        <link rel="stylesheet" href="css/style.css" />
+        <script src="js/common.js"></script>
+        <script src="js/vendor/pdf.min.js"></script>
+        <script>
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'js/vendor/pdf.worker.min.js';
+        </script>
+        <script src="js/vendor/pdf-lib.min.js"></script>
+        <style>
+            #nav-watermark {
+                background-color: var(--primary-soft);
+                color: var(--primary);
+                font-weight: bold;
+            }
+            .setting-group {
+                margin-bottom: 12px;
+            }
+            .setting-group label {
+                display: block;
+                font-weight: bold;
+                font-size: 13px;
+                margin-bottom: 6px;
+                color: var(--text-main);
+            }
+            .wm-canvas-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+                z-index: 5;
+            }
+            .modal-right {
+                overflow-y: visible;
+            }
+            .modal-right-scroll {
+                flex: 1;
+                overflow-y: auto;
+                min-height: 0;
+            }
+            .modal-right-actions {
+                flex-shrink: 0;
+                border-top: 1px solid var(--divider);
+                padding-top: 16px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="trust-banner">
+            🔒 纯本地处理：所有操作均在浏览器内完成，文件绝不上传服务器，保护您的隐私安全。
         </div>
 
-        <!-- MAIN CONTENT -->
-        <div class="main-content">
-            
-            <div class="page-view">
-                <div class="header">
-                    <h1>PDF 加水印</h1>
-                    <span class="badge">支持中文排版</span>
-                </div>
-                
-                <div class="card">
-                    <label for="wmFileInput" class="split-file-btn" id="wmDropZone">
-                        点击选择 PDF 文件<span class="hide-on-mobile">（或将文件拖到此处）</span>
-                    </label>
-                    <input type="file" id="wmFileInput" accept="application/pdf,.pdf" onchange="handleWmFileAdded(event)">
-                    
-                    <div id="fileInfoArea" class="file-loaded-card" style="display:none;">
-                        <div id="wmFileName" class="file-name">📄 filename.pdf</div>
-                        <div class="trash-btn" onclick="resetWmFile()" title="移除文件">
-                            <svg viewBox="0 0 24 24"><path d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-3.5l-1-1zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7z"/></svg>
-                        </div>
+        <div class="app-body">
+            <!-- SIDEBAR -->
+            <div class="sidebar">
+                <a href="index.html" class="logo-area">
+                    <div class="logo-icon">◈</div>
+                    <div class="logo-title">PDF 工具箱</div>
+                </a>
+                <div class="divider"></div>
+
+                <div class="nav-label hide-on-mobile">工具导航</div>
+                <a href="index.html" class="nav-btn" id="nav-home">首页</a>
+
+                <div class="nav-label hide-on-mobile nav-label-spaced">核心处理</div>
+                <a href="merge.html" class="nav-btn" id="nav-merge">合并 PDF</a>
+                <a href="split.html" class="nav-btn" id="nav-split">拆分 / 提取</a>
+                <a href="edit-pages.html" class="nav-btn" id="nav-edit">旋转与删除</a>
+
+                <div class="nav-label hide-on-mobile nav-label-spaced">格式转换</div>
+                <a href="pdf-to-img.html" class="nav-btn" id="nav-pdf2img">PDF 转图片</a>
+                <a href="img-to-pdf.html" class="nav-btn" id="nav-img2pdf">图片转 PDF</a>
+
+                <div class="nav-label hide-on-mobile nav-label-spaced">安全与保护</div>
+                <a href="watermark.html" class="nav-btn" id="nav-watermark">PDF 加水印</a>
+
+                <div class="spacer"></div>
+                <button class="theme-toggle" id="themeBtn">切换深色</button>
+            </div>
+
+            <!-- MAIN CONTENT -->
+            <div class="main-content">
+                <div class="page-view">
+                    <div class="header">
+                        <h1>PDF 加水印</h1>
+                        <span class="badge">支持中文排版</span>
                     </div>
 
-                    <div class="settings-panel watermark-settings" style="background-color: var(--bg-surface); border-radius: 12px; padding: 16px 20px;">
-                        <div class="wm-tip" style="font-size: 13px; color: var(--primary); margin-bottom: 12px; font-weight: bold;">💡 提示：支持中英文混合。双击下方任意单页，即可为该页独立定制专属水印！</div>
-                        
-                        <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end;">
-                            <div class="setting-group" style="flex: 2; min-width: 200px;">
-                                <label>全局文字</label>
-                                <input type="text" id="globalWmText" value="机密文件 CONFIDENTIAL" oninput="updateAllOverlays()" style="width: 100%;">
+                    <div class="card">
+                        <label for="wmFileInput" class="split-file-btn" id="wmDropZone">
+                            点击选择 PDF 文件<span class="hide-on-mobile"
+                                >（或将文件拖到此处）</span
+                            >
+                        </label>
+                        <input type="file" id="wmFileInput" accept="application/pdf,.pdf" />
+
+                        <div id="fileInfoArea" class="file-loaded-card u-hidden">
+                            <div id="wmFileName" class="file-name">📄 filename.pdf</div>
+                            <button
+                                type="button"
+                                class="trash-btn"
+                                id="wmResetBtn"
+                                title="移除文件"
+                                aria-label="移除文件"
+                            >
+                                <svg viewBox="0 0 24 24">
+                                    <path
+                                        d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-3.5l-1-1zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7z"
+                                    />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="settings-panel watermark-settings u-surface-panel-lg">
+                            <div class="wm-tip wm-tip-highlight">
+                                💡
+                                提示：支持中英文混合。双击下方任意单页，即可为该页独立定制专属水印！
                             </div>
-                            <div class="setting-group" style="flex: 1; min-width: 120px;">
-                                <label>颜色</label>
-                                <select id="globalWmColor" onchange="updateAllOverlays()" style="width: 100%;">
-                                    <option value="#6B7280">灰色 (推荐)</option>
-                                    <option value="#EF4444">红色</option>
-                                    <option value="#3B82F6">蓝色</option>
-                                    <option value="#111827">黑色</option>
-                                </select>
+
+                            <div class="u-row-gap-16-wrap u-items-end">
+                                <div class="setting-group u-flex-2-min-200">
+                                    <label>全局文字</label>
+                                    <input
+                                        type="text"
+                                        id="globalWmText"
+                                        value="机密文件 CONFIDENTIAL"
+                                        class="u-w-full"
+                                    />
+                                </div>
+                                <div class="setting-group u-flex-1-min-120">
+                                    <label>颜色</label>
+                                    <select id="globalWmColor" class="u-w-full">
+                                        <option value="#6B7280">灰色 (推荐)</option>
+                                        <option value="#EF4444">红色</option>
+                                        <option value="#3B82F6">蓝色</option>
+                                        <option value="#111827">黑色</option>
+                                    </select>
+                                </div>
+                                <div class="setting-group u-flex-1-min-120">
+                                    <label>排布模式</label>
+                                    <select id="globalWmMode" class="u-w-full">
+                                        <option value="single">单条居中</option>
+                                        <option value="tile">多行平铺</option>
+                                    </select>
+                                </div>
+                                <div class="setting-group u-flex-1-min-120">
+                                    <label>文字方向</label>
+                                    <select id="globalWmFlip" class="u-w-full">
+                                        <option value="none">正常 (默认)</option>
+                                        <option value="reverse">文字倒序</option>
+                                        <option value="rotate180">翻转 180°</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="setting-group" style="flex: 1; min-width: 120px;">
-                                <label>排布模式</label>
-                                <select id="globalWmMode" onchange="updateAllOverlays()" style="width: 100%;">
-                                    <option value="single">单条居中</option>
-                                    <option value="tile">多行平铺</option>
-                                </select>
-                            </div>
-                            <div class="setting-group" style="flex: 1; min-width: 120px;">
-                                <label>文字方向</label>
-                                <select id="globalWmFlip" onchange="updateAllOverlays()" style="width: 100%;">
-                                    <option value="none">正常 (默认)</option>
-                                    <option value="reverse">文字倒序</option>
-                                    <option value="rotate180">翻转 180°</option>
-                                </select>
+
+                            <div class="u-row-gap-16-wrap u-mt-8">
+                                <div class="setting-group u-flex-1-min-150">
+                                    <label>透明度: <span id="valOpacity">0.3</span></label>
+                                    <input
+                                        type="range"
+                                        id="globalWmOpacity"
+                                        min="0.1"
+                                        max="1"
+                                        step="0.1"
+                                        value="0.3"
+                                        class="u-w-full"
+                                    />
+                                </div>
+                                <div class="setting-group u-flex-1-min-150">
+                                    <label>字体大小: <span id="valSize">100</span></label>
+                                    <input
+                                        type="range"
+                                        id="globalWmSize"
+                                        min="10"
+                                        max="300"
+                                        step="5"
+                                        value="100"
+                                        class="u-w-full"
+                                    />
+                                </div>
+                                <div class="setting-group u-flex-1-min-150">
+                                    <label>旋转角度: <span id="valAngle">45</span>°</label>
+                                    <input
+                                        type="range"
+                                        id="globalWmAngle"
+                                        min="0"
+                                        max="360"
+                                        step="5"
+                                        value="45"
+                                        class="u-w-full"
+                                    />
+                                </div>
+                                <div class="setting-group u-flex-1-min-150 u-hidden">
+                                    <label>水平间距: <span id="valGapX">100</span></label>
+                                    <input
+                                        type="range"
+                                        id="globalWmGapX"
+                                        min="0"
+                                        max="300"
+                                        step="10"
+                                        value="100"
+                                        class="u-w-full"
+                                    />
+                                </div>
+                                <div class="setting-group u-flex-1-min-150 u-hidden">
+                                    <label>垂直间距: <span id="valGapY">100</span></label>
+                                    <input
+                                        type="range"
+                                        id="globalWmGapY"
+                                        min="0"
+                                        max="300"
+                                        step="10"
+                                        value="100"
+                                        class="u-w-full"
+                                    />
+                                </div>
                             </div>
                         </div>
 
-                        <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-top: 8px;">
-                            <div class="setting-group" style="flex: 1; min-width: 150px;">
-                                <label>透明度: <span id="valOpacity">0.3</span></label>
-                                <input type="range" id="globalWmOpacity" min="0.1" max="1" step="0.1" value="0.3" oninput="document.getElementById('valOpacity').innerText=this.value; updateAllOverlays();" style="width: 100%;">
-                            </div>
-                            <div class="setting-group" style="flex: 1; min-width: 150px;">
-                                <label>字体大小: <span id="valSize">100</span></label>
-                                <input type="range" id="globalWmSize" min="10" max="300" step="5" value="100" oninput="document.getElementById('valSize').innerText=this.value; updateAllOverlays();" style="width: 100%;">
-                            </div>
-                            <div class="setting-group" style="flex: 1; min-width: 150px;">
-                                <label>旋转角度: <span id="valAngle">45</span>°</label>
-                                <input type="range" id="globalWmAngle" min="0" max="360" step="5" value="45" oninput="document.getElementById('valAngle').innerText=this.value; updateAllOverlays();" style="width: 100%;">
-                            </div>
-                            <div class="setting-group" style="flex: 1; min-width: 150px; display: none;">
-                                <label>水平间距: <span id="valGapX">100</span></label>
-                                <input type="range" id="globalWmGapX" min="0" max="300" step="10" value="100" oninput="document.getElementById('valGapX').innerText=this.value; updateAllOverlays();" style="width: 100%;">
-                            </div>
-                            <div class="setting-group" style="flex: 1; min-width: 150px; display: none;">
-                                <label>垂直间距: <span id="valGapY">100</span></label>
-                                <input type="range" id="globalWmGapY" min="0" max="300" step="10" value="100" oninput="document.getElementById('valGapY').innerText=this.value; updateAllOverlays();" style="width: 100%;">
-                            </div>
-                        </div>
+                        <!-- PDF 网格容器 -->
+                        <div
+                            id="wmPagesGrid"
+                            class="pdf-page-grid wm-page-grid-offset u-hidden"
+                        ></div>
                     </div>
-                    
-                    <!-- PDF 网格容器 -->
-                    <div id="wmPagesGrid" class="pdf-page-grid" style="display: none; margin-top: 20px;"></div>
-                </div>
 
-                <div class="card action-card" style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <span style="color: var(--text-sub); font-size: 13px;" id="wmStatusText">未加载文件</span>
-                    <button class="btn btn-run" id="runWmBtn" onclick="runWatermark()" disabled>添加水印并保存</button>
-                </div>
-                
-                <div style="flex-grow: 1;"></div>
-                <div class="footer">
-                    <p>PDF 工具箱 © 2026 | <a href="javascript:alert('该工具纯前端本地处理，您的文件不会上传至任何服务器。')">隐私说明</a></p>
+                    <div class="card action-card">
+                        <span class="u-status-text" id="wmStatusText">未加载文件</span>
+                        <button class="btn btn-run" id="runWmBtn" disabled>添加水印并保存</button>
+                    </div>
+
+                    <div class="u-flex-grow"></div>
+                    <div class="footer">
+                        <p>PDF 工具箱 © 2026 | <a href="#" class="privacy-link">隐私说明</a></p>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Modal for Customizing Single Page -->
-    <div id="wmModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-left" style="position: relative;">
-                <!-- 大图预览 -->
-                <div class="pdf-page-canvas-wrapper" style="box-shadow: none; border: none; height: 100%; cursor: grab; background: #e5e7eb;" id="modalCanvasWrap">
-                    <div id="modalZoomContainer" style="position: relative; transform-origin: center; transition: transform 0.1s ease-out; display: flex; justify-content: center; align-items: center;">
-                        <canvas class="pdf-page-canvas" id="modalCanvas" style="max-width: none; max-height: none; width: auto; height: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"></canvas>
-                        <canvas class="wm-canvas-overlay" id="modalWmCanvas" style="max-width: none; max-height: none; width: 100%; height: 100%;"></canvas>
+        <!-- Modal for Customizing Single Page -->
+        <div
+            id="wmModal"
+            class="modal-overlay"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modalTitle"
+        >
+            <div class="modal-content">
+                <div class="modal-left u-position-relative">
+                    <!-- 大图预览 -->
+                    <div class="pdf-page-canvas-wrapper wm-modal-canvas-wrap" id="modalCanvasWrap">
+                        <div id="modalZoomContainer" class="wm-modal-zoom-container">
+                            <canvas
+                                class="pdf-page-canvas wm-modal-canvas"
+                                id="modalCanvas"
+                            ></canvas>
+                            <canvas
+                                class="wm-canvas-overlay wm-modal-overlay-canvas"
+                                id="modalWmCanvas"
+                            ></canvas>
+                        </div>
+                    </div>
+                    <div class="wm-modal-floating-tools">
+                        <button class="btn btn-outline u-btn-zoom" id="wmModalZoomOutBtn">
+                            －
+                        </button>
+                        <span id="modalZoomLevel" class="u-zoom-label-50">100%</span>
+                        <button class="btn btn-outline u-btn-zoom" id="wmModalZoomInBtn">＋</button>
+                        <button class="btn btn-outline u-btn-fit" id="wmModalFitBtn">
+                            适应窗口
+                        </button>
                     </div>
                 </div>
-                <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--card); padding: 8px 16px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; gap: 16px; align-items: center; z-index: 10;">
-                    <button class="btn btn-outline" style="padding: 4px 12px; font-weight: bold;" onclick="zoomModal(-0.2)">－</button>
-                    <span id="modalZoomLevel" style="font-size: 14px; font-weight: bold; width: 50px; text-align: center;">100%</span>
-                    <button class="btn btn-outline" style="padding: 4px 12px; font-weight: bold;" onclick="zoomModal(0.2)">＋</button>
-                    <button class="btn btn-outline" style="padding: 4px 12px; font-size: 12px;" onclick="fitModalToWindow()">适应窗口</button>
-                </div>
-            </div>
-            <div class="modal-right">
-                <div class="modal-right-scroll">
-                    <h3 style="margin-bottom: 16px; font-size: 18px;" id="modalTitle">定制第 N 页</h3>
+                <div class="modal-right">
+                    <div class="modal-right-scroll">
+                        <h3 class="wm-modal-title" id="modalTitle">定制第 N 页</h3>
 
-                    <div class="setting-group">
-                        <label>专属文字</label>
-                        <input type="text" id="modalWmText" oninput="updateModalPreview()" style="width: 100%;">
+                        <div class="setting-group">
+                            <label>专属文字</label>
+                            <input type="text" id="modalWmText" class="u-w-full" />
+                        </div>
+                        <div class="setting-group">
+                            <label>颜色</label>
+                            <select id="modalWmColor" class="u-w-full">
+                                <option value="#6B7280">灰色</option>
+                                <option value="#EF4444">红色</option>
+                                <option value="#3B82F6">蓝色</option>
+                                <option value="#111827">黑色</option>
+                            </select>
+                        </div>
+                        <div class="setting-group">
+                            <label>排布模式</label>
+                            <select id="modalWmMode" class="u-w-full">
+                                <option value="single">单条居中</option>
+                                <option value="tile">多行平铺</option>
+                            </select>
+                        </div>
+                        <div class="setting-group">
+                            <label>文字方向</label>
+                            <select id="modalWmFlip" class="u-w-full">
+                                <option value="none">正常 (默认)</option>
+                                <option value="reverse">文字倒序</option>
+                                <option value="rotate180">翻转 180°</option>
+                            </select>
+                        </div>
+                        <div class="setting-group">
+                            <label>透明度: <span id="modalValOpacity">0.3</span></label>
+                            <input
+                                type="range"
+                                id="modalWmOpacity"
+                                min="0.1"
+                                max="1"
+                                step="0.1"
+                                value="0.3"
+                                class="u-w-full"
+                            />
+                        </div>
+                        <div class="setting-group">
+                            <label>大小: <span id="modalValSize">100</span></label>
+                            <input
+                                type="range"
+                                id="modalWmSize"
+                                min="10"
+                                max="300"
+                                step="5"
+                                value="100"
+                                class="u-w-full"
+                            />
+                        </div>
+                        <div class="setting-group">
+                            <label>角度: <span id="modalValAngle">45</span>°</label>
+                            <input
+                                type="range"
+                                id="modalWmAngle"
+                                min="0"
+                                max="360"
+                                step="5"
+                                value="45"
+                                class="u-w-full"
+                            />
+                        </div>
+                        <div class="setting-group" id="modalGapXGroup">
+                            <label>水平间距: <span id="modalValGapX">100</span></label>
+                            <input
+                                type="range"
+                                id="modalWmGapX"
+                                min="0"
+                                max="300"
+                                step="10"
+                                value="100"
+                                class="u-w-full"
+                            />
+                        </div>
+                        <div class="setting-group u-mb-24" id="modalGapYGroup">
+                            <label>垂直间距: <span id="modalValGapY">100</span></label>
+                            <input
+                                type="range"
+                                id="modalWmGapY"
+                                min="0"
+                                max="300"
+                                step="10"
+                                value="100"
+                                class="u-w-full"
+                            />
+                        </div>
                     </div>
-                    <div class="setting-group">
-                        <label>颜色</label>
-                        <select id="modalWmColor" onchange="updateModalPreview()" style="width: 100%;">
-                            <option value="#6B7280">灰色</option>
-                            <option value="#EF4444">红色</option>
-                            <option value="#3B82F6">蓝色</option>
-                            <option value="#111827">黑色</option>
-                        </select>
-                    </div>
-                    <div class="setting-group">
-                        <label>排布模式</label>
-                        <select id="modalWmMode" onchange="updateModalPreview()" style="width: 100%;">
-                            <option value="single">单条居中</option>
-                            <option value="tile">多行平铺</option>
-                        </select>
-                    </div>
-                    <div class="setting-group">
-                        <label>文字方向</label>
-                        <select id="modalWmFlip" onchange="updateModalPreview()" style="width: 100%;">
-                            <option value="none">正常 (默认)</option>
-                            <option value="reverse">文字倒序</option>
-                            <option value="rotate180">翻转 180°</option>
-                        </select>
-                    </div>
-                    <div class="setting-group">
-                        <label>透明度: <span id="modalValOpacity">0.3</span></label>
-                        <input type="range" id="modalWmOpacity" min="0.1" max="1" step="0.1" value="0.3" oninput="document.getElementById('modalValOpacity').innerText=this.value; updateModalPreview();" style="width: 100%;">
-                    </div>
-                    <div class="setting-group">
-                        <label>大小: <span id="modalValSize">100</span></label>
-                        <input type="range" id="modalWmSize" min="10" max="300" step="5" value="100" oninput="document.getElementById('modalValSize').innerText=this.value; updateModalPreview();" style="width: 100%;">
-                    </div>
-                    <div class="setting-group">
-                        <label>角度: <span id="modalValAngle">45</span>°</label>
-                        <input type="range" id="modalWmAngle" min="0" max="360" step="5" value="45" oninput="document.getElementById('modalValAngle').innerText=this.value; updateModalPreview();" style="width: 100%;">
-                    </div>
-                    <div class="setting-group" id="modalGapXGroup">
-                        <label>水平间距: <span id="modalValGapX">100</span></label>
-                        <input type="range" id="modalWmGapX" min="0" max="300" step="10" value="100" oninput="document.getElementById('modalValGapX').innerText=this.value; updateModalPreview();" style="width: 100%;">
-                    </div>
-                    <div class="setting-group" id="modalGapYGroup" style="margin-bottom: 24px;">
-                        <label>垂直间距: <span id="modalValGapY">100</span></label>
-                        <input type="range" id="modalWmGapY" min="0" max="300" step="10" value="100" oninput="document.getElementById('modalValGapY').innerText=this.value; updateModalPreview();" style="width: 100%;">
-                    </div>
-                </div>
 
-                <div class="modal-right-actions">
-                    <div style="display: flex; gap: 8px;">
-                        <button class="btn btn-outline" style="flex:1; color: var(--danger); border-color: var(--danger);" onclick="clearModalCustom()">恢复为全局设置</button>
-                        <button class="btn btn-outline" style="flex:1;" onclick="closeModal()">取消</button>
+                    <div class="modal-right-actions">
+                        <div class="wm-modal-actions-row">
+                            <button
+                                class="btn btn-outline u-flex-1 u-danger-outline"
+                                id="modalClearCustomBtn"
+                            >
+                                恢复为全局设置
+                            </button>
+                            <button class="btn btn-outline u-flex-1" id="modalCancelBtn">
+                                取消
+                            </button>
+                        </div>
+                        <button class="btn btn-primary u-btn-block" id="modalSaveCustomBtn">
+                            保存定制
+                        </button>
                     </div>
-                    <button class="btn btn-primary" style="margin-top: 8px; width: 100%;" onclick="saveModalCustom()">保存定制</button>
                 </div>
             </div>
         </div>
-    </div>
 
-    <script>
-        let wmFileObj = null;
-        let pdfTotalPages = 0;
-        let pdfjsDoc = null;
-        let pageDimensions = []; // 存储每页的宽高
-        
-        let customWms = {}; 
-        let currentModalIdx = -1;
+        <script>
+            let wmFileObj = null;
+            let pdfTotalPages = 0;
+            let pdfjsDoc = null;
+            let customWms = {};
+            let currentModalIdx = -1;
 
-        let modalZoom = 1;
-        let modalPanX = 0;
-        let modalPanY = 0;
-        let isModalPanning = false;
-        let mStartX, mStartY;
+            let modalZoom = 1;
+            let modalPanX = 0;
+            let modalPanY = 0;
+            let isModalPanning = false;
+            let mStartX, mStartY;
+            const wmFileInput = document.getElementById('wmFileInput');
+            const wmResetBtn = document.getElementById('wmResetBtn');
+            const runWmBtn = document.getElementById('runWmBtn');
+            const wmModalZoomOutBtn = document.getElementById('wmModalZoomOutBtn');
+            const wmModalZoomInBtn = document.getElementById('wmModalZoomInBtn');
+            const wmModalFitBtn = document.getElementById('wmModalFitBtn');
+            const modalClearCustomBtn = document.getElementById('modalClearCustomBtn');
+            const modalCancelBtn = document.getElementById('modalCancelBtn');
+            const modalSaveCustomBtn = document.getElementById('modalSaveCustomBtn');
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const wrap = document.getElementById('modalCanvasWrap');
-            if(wrap) {
-                wrap.addEventListener('wheel', (e) => {
-                    e.preventDefault();
-                    const delta = e.deltaY < 0 ? 0.1 : -0.1;
-                    zoomModal(delta);
+            wmFileInput.addEventListener('change', handleWmFileAdded);
+            wmResetBtn.addEventListener('click', resetWmFile);
+            runWmBtn.addEventListener('click', runWatermark);
+            wmModalZoomOutBtn.addEventListener('click', () => zoomModal(-0.2));
+            wmModalZoomInBtn.addEventListener('click', () => zoomModal(0.2));
+            wmModalFitBtn.addEventListener('click', fitModalToWindow);
+            modalClearCustomBtn.addEventListener('click', clearModalCustom);
+            modalCancelBtn.addEventListener('click', closeModal);
+            modalSaveCustomBtn.addEventListener('click', saveModalCustom);
+
+            ['globalWmText', 'globalWmColor', 'globalWmMode', 'globalWmFlip'].forEach((id) => {
+                const eventName = id === 'globalWmText' ? 'input' : 'change';
+                document.getElementById(id).addEventListener(eventName, updateAllOverlays);
+            });
+
+            [
+                ['globalWmOpacity', 'valOpacity'],
+                ['globalWmSize', 'valSize'],
+                ['globalWmAngle', 'valAngle'],
+                ['globalWmGapX', 'valGapX'],
+                ['globalWmGapY', 'valGapY'],
+            ].forEach(([inputId, valueId]) => {
+                const input = document.getElementById(inputId);
+                input.addEventListener('input', () => {
+                    document.getElementById(valueId).innerText = input.value;
+                    updateAllOverlays();
                 });
-                wrap.addEventListener('mousedown', (e) => {
-                    isModalPanning = true;
-                    mStartX = e.clientX - modalPanX;
-                    mStartY = e.clientY - modalPanY;
-                    wrap.style.cursor = 'grabbing';
+            });
+
+            ['modalWmText', 'modalWmColor', 'modalWmMode', 'modalWmFlip'].forEach((id) => {
+                const eventName = id === 'modalWmText' ? 'input' : 'change';
+                document.getElementById(id).addEventListener(eventName, updateModalPreview);
+            });
+
+            [
+                ['modalWmOpacity', 'modalValOpacity'],
+                ['modalWmSize', 'modalValSize'],
+                ['modalWmAngle', 'modalValAngle'],
+                ['modalWmGapX', 'modalValGapX'],
+                ['modalWmGapY', 'modalValGapY'],
+            ].forEach(([inputId, valueId]) => {
+                const input = document.getElementById(inputId);
+                input.addEventListener('input', () => {
+                    document.getElementById(valueId).innerText = input.value;
+                    updateModalPreview();
                 });
-                wrap.addEventListener('mousemove', (e) => {
-                    if (!isModalPanning) return;
-                    modalPanX = e.clientX - mStartX;
-                    modalPanY = e.clientY - mStartY;
-                    applyModalTransform();
-                });
-                wrap.addEventListener('mouseup', () => { isModalPanning = false; wrap.style.cursor = 'grab'; });
-                wrap.addEventListener('mouseleave', () => { isModalPanning = false; wrap.style.cursor = 'grab'; });
-            }
-        });
+            });
 
-        function zoomModal(delta) {
-            modalZoom = Math.max(0.1, Math.min(modalZoom + delta, 5));
-            applyModalTransform();
-        }
+            document.addEventListener('DOMContentLoaded', () => {
+                const wrap = document.getElementById('modalCanvasWrap');
+                if (wrap) {
+                    wrap.addEventListener('wheel', (e) => {
+                        e.preventDefault();
+                        const delta = e.deltaY < 0 ? 0.1 : -0.1;
+                        zoomModal(delta);
+                    });
+                    wrap.addEventListener('mousedown', (e) => {
+                        isModalPanning = true;
+                        mStartX = e.clientX - modalPanX;
+                        mStartY = e.clientY - modalPanY;
+                        wrap.style.cursor = 'grabbing';
+                    });
+                    wrap.addEventListener('mousemove', (e) => {
+                        if (!isModalPanning) return;
+                        modalPanX = e.clientX - mStartX;
+                        modalPanY = e.clientY - mStartY;
+                        applyModalTransform();
+                    });
+                    wrap.addEventListener('mouseup', () => {
+                        isModalPanning = false;
+                        wrap.style.cursor = 'grab';
+                    });
+                    wrap.addEventListener('mouseleave', () => {
+                        isModalPanning = false;
+                        wrap.style.cursor = 'grab';
+                    });
+                }
+            });
 
-        function fitModalToWindow() {
-            const wrap = document.getElementById('modalCanvasWrap');
-            const canvas = document.getElementById('modalCanvas');
-            if (canvas.width && canvas.height) {
-                const scaleX = (wrap.clientWidth - 40) / canvas.width;
-                const scaleY = (wrap.clientHeight - 40) / canvas.height;
-                modalZoom = Math.max(0.1, Math.min(scaleX, scaleY, 1));
-            } else {
-                modalZoom = 1;
-            }
-            modalPanX = 0;
-            modalPanY = 0;
-            applyModalTransform();
-        }
-
-        function applyModalTransform() {
-            const container = document.getElementById('modalZoomContainer');
-            container.style.transform = `translate(${modalPanX}px, ${modalPanY}px) scale(${modalZoom})`;
-            document.getElementById('modalZoomLevel').innerText = Math.round(modalZoom * 100) + '%';
-        }
-
-        function getGlobalConfig() {
-            return {
-                text: document.getElementById('globalWmText').value || " ",
-                color: document.getElementById('globalWmColor').value,
-                mode: document.getElementById('globalWmMode').value,
-                flip: document.getElementById('globalWmFlip').value,
-                opacity: parseFloat(document.getElementById('globalWmOpacity').value),
-                size: parseInt(document.getElementById('globalWmSize').value),
-                angle: parseInt(document.getElementById('globalWmAngle').value),
-                gapX: parseInt(document.getElementById('globalWmGapX').value),
-                gapY: parseInt(document.getElementById('globalWmGapY').value)
-            };
-        }
-
-        function getModalConfig() {
-            return {
-                text: document.getElementById('modalWmText').value || " ",
-                color: document.getElementById('modalWmColor').value,
-                mode: document.getElementById('modalWmMode').value,
-                flip: document.getElementById('modalWmFlip').value,
-                opacity: parseFloat(document.getElementById('modalWmOpacity').value),
-                size: parseInt(document.getElementById('modalWmSize').value),
-                angle: parseInt(document.getElementById('modalWmAngle').value),
-                gapX: parseInt(document.getElementById('modalWmGapX').value),
-                gapY: parseInt(document.getElementById('modalWmGapY').value)
-            };
-        }
-
-        function setModalConfig(config) {
-            document.getElementById('modalWmText').value = config.text;
-            document.getElementById('modalWmColor').value = config.color;
-            document.getElementById('modalWmMode').value = config.mode;
-            document.getElementById('modalWmFlip').value = config.flip || 'none';
-            
-            document.getElementById('modalWmOpacity').value = config.opacity;
-            document.getElementById('modalValOpacity').innerText = config.opacity;
-            
-            document.getElementById('modalWmSize').value = config.size;
-            document.getElementById('modalValSize').innerText = config.size;
-            
-            document.getElementById('modalWmAngle').value = config.angle;
-            document.getElementById('modalValAngle').innerText = config.angle;
-
-            const gapX = config.gapX !== undefined ? config.gapX : 100;
-            document.getElementById('modalWmGapX').value = gapX;
-            document.getElementById('modalValGapX').innerText = gapX;
-
-            const gapY = config.gapY !== undefined ? config.gapY : 100;
-            document.getElementById('modalWmGapY').value = gapY;
-            document.getElementById('modalValGapY').innerText = gapY;
-        }
-
-        // 核心渲染引擎：在给定的 Canvas 2D 上下文上绘制水印
-        function renderWatermarkOnCanvas(ctx, canvasWidth, canvasHeight, config, scale = 1) {
-            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-            if (!config.text.trim()) return;
-
-            ctx.save();
-            const scaledSize = config.size * 0.6 * scale;
-            ctx.font = `bold ${scaledSize}px "Noto Sans SC", "PingFang SC", sans-serif`;
-            ctx.fillStyle = config.color;
-            ctx.globalAlpha = config.opacity;
-            ctx.textBaseline = 'middle';
-
-            let renderText = config.text;
-            if (config.flip === 'reverse') {
-                renderText = renderText.split('').reverse().join('');
+            function zoomModal(delta) {
+                modalZoom = Math.max(0.1, Math.min(modalZoom + delta, 5));
+                applyModalTransform();
             }
 
-            let angleRad = config.angle * Math.PI / 180;
-            if (config.flip === 'rotate180') {
-                angleRad += Math.PI;
+            function fitModalToWindow() {
+                const wrap = document.getElementById('modalCanvasWrap');
+                const canvas = document.getElementById('modalCanvas');
+                if (canvas.width && canvas.height) {
+                    const scaleX = (wrap.clientWidth - 40) / canvas.width;
+                    const scaleY = (wrap.clientHeight - 40) / canvas.height;
+                    modalZoom = Math.max(0.1, Math.min(scaleX, scaleY, 1));
+                } else {
+                    modalZoom = 1;
+                }
+                modalPanX = 0;
+                modalPanY = 0;
+                applyModalTransform();
             }
 
-            const metrics = ctx.measureText(renderText);
-            const textW = metrics.width;
-            const textH = scaledSize * 1.5;
+            function applyModalTransform() {
+                const container = document.getElementById('modalZoomContainer');
+                container.style.transform = `translate(${modalPanX}px, ${modalPanY}px) scale(${modalZoom})`;
+                document.getElementById('modalZoomLevel').innerText =
+                    Math.round(modalZoom * 100) + '%';
+            }
 
-            if (config.mode === 'single') {
-                ctx.translate(canvasWidth / 2, canvasHeight / 2);
-                ctx.rotate(angleRad);
-                ctx.textAlign = 'center';
-                ctx.fillText(renderText, 0, 0);
-            } else {
-                // 平铺模式
-                ctx.translate(canvasWidth / 2, canvasHeight / 2);
-                ctx.rotate(angleRad);
-                ctx.textAlign = 'left';
-                
-                // 计算覆盖范围 (稍微多算一点以防旋转后留白)
-                const diagonal = Math.sqrt(canvasWidth*canvasWidth + canvasHeight*canvasHeight);
-                const stepX = textW + (config.gapX !== undefined ? config.gapX : 100) * 0.6 * scale; 
-                const stepY = textH + (config.gapY !== undefined ? config.gapY : 100) * 0.6 * scale;
-                
-                const startX = -diagonal / 2;
-                const endX = diagonal / 2;
-                const startY = -diagonal / 2;
-                const endY = diagonal / 2;
+            function getGlobalConfig() {
+                return {
+                    text: document.getElementById('globalWmText').value || ' ',
+                    color: document.getElementById('globalWmColor').value,
+                    mode: document.getElementById('globalWmMode').value,
+                    flip: document.getElementById('globalWmFlip').value,
+                    opacity: parseFloat(document.getElementById('globalWmOpacity').value),
+                    size: parseInt(document.getElementById('globalWmSize').value),
+                    angle: parseInt(document.getElementById('globalWmAngle').value),
+                    gapX: parseInt(document.getElementById('globalWmGapX').value),
+                    gapY: parseInt(document.getElementById('globalWmGapY').value),
+                };
+            }
 
-                for (let y = startY; y < endY; y += stepY) {
-                    for (let x = startX; x < endX; x += stepX) {
-                        ctx.fillText(renderText, x, y);
+            function getModalConfig() {
+                return {
+                    text: document.getElementById('modalWmText').value || ' ',
+                    color: document.getElementById('modalWmColor').value,
+                    mode: document.getElementById('modalWmMode').value,
+                    flip: document.getElementById('modalWmFlip').value,
+                    opacity: parseFloat(document.getElementById('modalWmOpacity').value),
+                    size: parseInt(document.getElementById('modalWmSize').value),
+                    angle: parseInt(document.getElementById('modalWmAngle').value),
+                    gapX: parseInt(document.getElementById('modalWmGapX').value),
+                    gapY: parseInt(document.getElementById('modalWmGapY').value),
+                };
+            }
+
+            function setModalConfig(config) {
+                document.getElementById('modalWmText').value = config.text;
+                document.getElementById('modalWmColor').value = config.color;
+                document.getElementById('modalWmMode').value = config.mode;
+                document.getElementById('modalWmFlip').value = config.flip || 'none';
+
+                document.getElementById('modalWmOpacity').value = config.opacity;
+                document.getElementById('modalValOpacity').innerText = config.opacity;
+
+                document.getElementById('modalWmSize').value = config.size;
+                document.getElementById('modalValSize').innerText = config.size;
+
+                document.getElementById('modalWmAngle').value = config.angle;
+                document.getElementById('modalValAngle').innerText = config.angle;
+
+                const gapX = config.gapX !== undefined ? config.gapX : 100;
+                document.getElementById('modalWmGapX').value = gapX;
+                document.getElementById('modalValGapX').innerText = gapX;
+
+                const gapY = config.gapY !== undefined ? config.gapY : 100;
+                document.getElementById('modalWmGapY').value = gapY;
+                document.getElementById('modalValGapY').innerText = gapY;
+            }
+
+            // 核心渲染引擎：在给定的 Canvas 2D 上下文上绘制水印
+            function renderWatermarkOnCanvas(ctx, canvasWidth, canvasHeight, config, scale = 1) {
+                ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+                if (!config.text.trim()) return;
+
+                ctx.save();
+                const scaledSize = config.size * 0.6 * scale;
+                ctx.font = `bold ${scaledSize}px "Noto Sans SC", "PingFang SC", sans-serif`;
+                ctx.fillStyle = config.color;
+                ctx.globalAlpha = config.opacity;
+                ctx.textBaseline = 'middle';
+
+                let renderText = config.text;
+                if (config.flip === 'reverse') {
+                    renderText = renderText.split('').reverse().join('');
+                }
+
+                let angleRad = (config.angle * Math.PI) / 180;
+                if (config.flip === 'rotate180') {
+                    angleRad += Math.PI;
+                }
+
+                const metrics = ctx.measureText(renderText);
+                const textW = metrics.width;
+                const textH = scaledSize * 1.5;
+
+                if (config.mode === 'single') {
+                    ctx.translate(canvasWidth / 2, canvasHeight / 2);
+                    ctx.rotate(angleRad);
+                    ctx.textAlign = 'center';
+                    ctx.fillText(renderText, 0, 0);
+                } else {
+                    // 平铺模式
+                    ctx.translate(canvasWidth / 2, canvasHeight / 2);
+                    ctx.rotate(angleRad);
+                    ctx.textAlign = 'left';
+
+                    // 计算覆盖范围 (稍微多算一点以防旋转后留白)
+                    const diagonal = Math.sqrt(
+                        canvasWidth * canvasWidth + canvasHeight * canvasHeight
+                    );
+                    const stepX =
+                        textW + (config.gapX !== undefined ? config.gapX : 100) * 0.6 * scale;
+                    const stepY =
+                        textH + (config.gapY !== undefined ? config.gapY : 100) * 0.6 * scale;
+
+                    const startX = -diagonal / 2;
+                    const endX = diagonal / 2;
+                    const startY = -diagonal / 2;
+                    const endY = diagonal / 2;
+
+                    for (let y = startY; y < endY; y += stepY) {
+                        for (let x = startX; x < endX; x += stepX) {
+                            ctx.fillText(renderText, x, y);
+                        }
                     }
                 }
+                ctx.restore();
             }
-            ctx.restore();
-        }
 
-        const wmDropZone = document.getElementById('wmDropZone');
-        wmDropZone.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
-        wmDropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            if(e.dataTransfer.files.length > 0) loadWmFile(e.dataTransfer.files[0]);
-        });
+            const wmDropZone = document.getElementById('wmDropZone');
+            wmDropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
+            });
+            wmDropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (e.dataTransfer.files.length > 0) loadWmFile(e.dataTransfer.files[0]);
+            });
 
-        function handleWmFileAdded(event) {
-            if(event.target.files.length > 0) loadWmFile(event.target.files[0]);
-            event.target.value = "";
-        }
+            function handleWmFileAdded(event) {
+                if (event.target.files.length > 0) loadWmFile(event.target.files[0]);
+                event.target.value = '';
+            }
 
-        function resetWmFile() {
-            wmFileObj = null;
-            pdfjsDoc = null;
-            customWms = {};
-            pageDimensions = [];
-            document.getElementById('wmDropZone').style.display = "block";
-            document.getElementById('fileInfoArea').style.display = "none";
-            document.getElementById('wmPagesGrid').style.display = "none";
-            document.getElementById('wmStatusText').innerText = "未加载文件";
-            document.getElementById('runWmBtn').disabled = true;
-        }
-
-        async function loadWmFile(file) {
-            if (file.type !== "application/pdf") { alert("只能选择 PDF 文件！"); return; }
-            wmFileObj = file;
-            customWms = {};
-            pageDimensions = [];
-            
-            const dropLabel = document.getElementById('wmDropZone');
-            const fileInfoArea = document.getElementById('fileInfoArea');
-            const fileNameDiv = document.getElementById('wmFileName');
-            const status = document.getElementById('wmStatusText');
-            const btn = document.getElementById('runWmBtn');
-            const grid = document.getElementById('wmPagesGrid');
-            
-            dropLabel.innerHTML = "正在解析并渲染文档...";
-            try {
-                const arrayBuffer = await file.arrayBuffer();
-                pdfjsDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                pdfTotalPages = pdfjsDoc.numPages;
-                
-                grid.innerHTML = '';
-
-                // 渲染缩略图
-                for (let i = 1; i <= pdfTotalPages; i++) {
-                    const page = await pdfjsDoc.getPage(i);
-                    const viewport = page.getViewport({ scale: 0.5 });
-                    pageDimensions.push({ w: viewport.width, h: viewport.height }); // 保存供水印使用
-                    
-                    const item = document.createElement('div');
-                    item.className = 'pdf-page-item';
-                    item.ondblclick = () => openModal(i - 1);
-                    item.title = "双击可独立定制该页水印";
-                    
-                    const canvasWrap = document.createElement('div');
-                    canvasWrap.className = 'pdf-page-canvas-wrapper';
-                    
-                    const canvas = document.createElement('canvas');
-                    canvas.className = 'pdf-page-canvas';
-                    canvas.width = viewport.width;
-                    canvas.height = viewport.height;
-                    
-                    const ctx = canvas.getContext('2d');
-                    await page.render({ canvasContext: ctx, viewport: viewport }).promise;
-                    
-                    // 水印专用透明 Canvas
-                    const wmCanvas = document.createElement('canvas');
-                    wmCanvas.className = 'wm-canvas-overlay';
-                    wmCanvas.id = `wm-canvas-${i-1}`;
-                    wmCanvas.width = viewport.width;
-                    wmCanvas.height = viewport.height;
-                    
-                    const customBadge = document.createElement('div');
-                    customBadge.className = 'custom-badge';
-                    customBadge.id = `custom-badge-${i-1}`;
-                    customBadge.innerText = '专属定制';
-
-                    canvasWrap.appendChild(canvas);
-                    canvasWrap.appendChild(wmCanvas);
-                    canvasWrap.appendChild(customBadge);
-                    
-                    const pageLabel = document.createElement('div');
-                    pageLabel.style = "font-size:12px; margin-top:8px; color: var(--text-dim); text-align:center;";
-                    pageLabel.innerText = `第 ${i} 页`;
-                    
-                    item.appendChild(canvasWrap);
-                    item.appendChild(pageLabel);
-                    grid.appendChild(item);
-                }
-
-                dropLabel.style.display = "none";
-                dropLabel.innerHTML = '点击选择 PDF 文件<span class="hide-on-mobile">（或将文件拖到此处）</span>';
-                
-                fileInfoArea.style.display = "flex";
-                fileNameDiv.innerText = `📄 ${file.name} (共 ${pdfTotalPages} 页)`;
-                
-                grid.style.display = "grid";
-
-                updateAllOverlays(); // 初始化全局效果
-                
-                status.innerText = "渲染完成，所见即所得。双击单页可深度定制。";
-                btn.disabled = false;
-            } catch(e) {
-                console.error(e);
-                dropLabel.innerHTML = "❌ 读取失败，可能是加密文件。点击重试";
+            function resetWmFile() {
                 wmFileObj = null;
-                btn.disabled = true;
+                pdfjsDoc = null;
+                customWms = {};
+                document.getElementById('wmDropZone').style.display = 'block';
+                document.getElementById('fileInfoArea').style.display = 'none';
+                document.getElementById('wmPagesGrid').style.display = 'none';
+                document.getElementById('wmStatusText').innerText = '未加载文件';
+                document.getElementById('runWmBtn').disabled = true;
             }
-        }
 
-        // 同步全局设置与预览
-        function updateAllOverlays() {
-            const globalCfg = getGlobalConfig();
-
-            // 根据排布模式显隐间距滑块
-            const gapDisplay = globalCfg.mode === 'single' ? 'none' : '';
-            document.getElementById('globalWmGapX').parentElement.style.display = gapDisplay;
-            document.getElementById('globalWmGapY').parentElement.style.display = gapDisplay;
-
-            for(let i = 0; i < pdfTotalPages; i++) {
-                const wmCanvas = document.getElementById(`wm-canvas-${i}`);
-                const badge = document.getElementById(`custom-badge-${i}`);
-                if (!wmCanvas) continue;
-
-                const ctx = wmCanvas.getContext('2d');
-                const config = customWms[i] || globalCfg;
-                
-                renderWatermarkOnCanvas(ctx, wmCanvas.width, wmCanvas.height, config, 0.5);
-
-                if (customWms[i]) badge.style.display = 'block';
-                else badge.style.display = 'none';
-            }
-        }
-
-        // 打开单页定制弹窗
-        async function openModal(idx) {
-            currentModalIdx = idx;
-            document.getElementById('modalTitle').innerText = `定制第 ${idx + 1} 页`;
-            
-            const config = customWms[idx] || getGlobalConfig();
-            setModalConfig(config);
-
-            // 渲染高清大图
-            const canvas = document.getElementById('modalCanvas');
-            const ctx = canvas.getContext('2d');
-            const page = await pdfjsDoc.getPage(idx + 1);
-            const viewport = page.getViewport({ scale: 1.5 });
-            canvas.width = viewport.width;
-            canvas.height = viewport.height;
-            await page.render({ canvasContext: ctx, viewport: viewport }).promise;
-
-            // 初始化弹窗水印画布尺寸
-            const wmCanvas = document.getElementById('modalWmCanvas');
-            wmCanvas.width = viewport.width;
-            wmCanvas.height = viewport.height;
-
-            updateModalPreview();
-            document.getElementById('wmModal').style.display = 'flex';
-            setTimeout(() => fitModalToWindow(), 10);
-        }
-
-        function updateModalPreview() {
-            const config = getModalConfig();
-            // 根据排布模式显隐间距滑块
-            const gapDisplay = config.mode === 'single' ? 'none' : '';
-            document.getElementById('modalGapXGroup').style.display = gapDisplay;
-            document.getElementById('modalGapYGroup').style.display = gapDisplay;
-
-            const wmCanvas = document.getElementById('modalWmCanvas');
-            const ctx = wmCanvas.getContext('2d');
-            renderWatermarkOnCanvas(ctx, wmCanvas.width, wmCanvas.height, config, 1.5);
-        }
-
-        function closeModal() { document.getElementById('wmModal').style.display = 'none'; }
-
-        function saveModalCustom() {
-            customWms[currentModalIdx] = getModalConfig();
-            updateAllOverlays();
-            closeModal();
-        }
-
-        function clearModalCustom() {
-            delete customWms[currentModalIdx];
-            updateAllOverlays();
-            closeModal();
-        }
-
-        // 将水印渲染为透明 PNG 供 pdf-lib 嵌入
-        function generateWatermarkPngUrl(width, height, config) {
-            const canvas = document.createElement('canvas');
-            // 为了保证清晰度，生成尺寸和实际页面一样大的图片
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            renderWatermarkOnCanvas(ctx, width, height, config);
-            return canvas.toDataURL('image/png');
-        }
-
-        // 最终保存
-        async function runWatermark() {
-            if (!wmFileObj) return;
-
-            const btn = document.getElementById('runWmBtn');
-            const status = document.getElementById('wmStatusText');
-
-            btn.disabled = true; btn.innerText = "处理中...";
-            status.innerText = "正在压制带中文字体的水印，这可能需要几秒钟...";
-
-            try {
-                const { PDFDocument } = PDFLib;
-                const arrayBuffer = await wmFileObj.arrayBuffer();
-                const newDoc = await PDFDocument.load(arrayBuffer);
-                const globalCfg = getGlobalConfig();
-                const pages = newDoc.getPages();
-                
-                for (let i = 0; i < pages.length; i++) {
-                    const page = pages[i];
-                    const wmConfig = customWms[i] || globalCfg;
-                    if (!wmConfig.text.trim()) continue;
-
-                    const { width, height } = page.getSize();
-                    status.innerText = `正在处理第 ${i+1}/${pages.length} 页...`;
-                    
-                    // 利用前端 Canvas 生成该页专属的水印层透明 PNG
-                    // 这里我们采用和缩略图一模一样的绘制逻辑，保证 100% 还原
-                    // 为了 PDF 打印清晰度，Canvas 生成分辨率提升 2 倍
-                    const scale = 2.0; 
-                    const dataUrl = generateWatermarkPngUrl(width * scale, height * scale, {
-                        ...wmConfig,
-                        size: wmConfig.size * scale // 字号跟着放大
-                    });
-
-                    // 嵌入到 PDF
-                    const pngImage = await newDoc.embedPng(dataUrl);
-                    page.drawImage(pngImage, {
-                        x: 0,
-                        y: 0,
-                        width: width,
-                        height: height
-                    });
+            async function loadWmFile(file) {
+                if (!isPdfFile(file)) {
+                    alert('只能选择 PDF 文件！');
+                    return;
                 }
+                wmFileObj = file;
+                customWms = {};
 
-                status.innerText = "正在打包生成最终文件...";
-                const pdfBytes = await newDoc.save();
-                const baseName = wmFileObj.name.replace(/\.[^/.]+$/, "");
-                triggerDownload(pdfBytes, `${baseName}_水印.pdf`);
+                const dropLabel = document.getElementById('wmDropZone');
+                const fileInfoArea = document.getElementById('fileInfoArea');
+                const fileNameDiv = document.getElementById('wmFileName');
+                const status = document.getElementById('wmStatusText');
+                const btn = document.getElementById('runWmBtn');
+                const grid = document.getElementById('wmPagesGrid');
 
-                status.innerText = "✅ 处理完成，已下载"; status.style.color = "var(--success)";
-            } catch (e) {
-                console.error(e); status.innerText = "❌ 处理失败"; status.style.color = "var(--danger)";
-            } finally {
-                btn.disabled = false; btn.innerText = "添加水印并保存";
-                setTimeout(() => { status.innerText = "文件已就绪，可继续调整参数"; status.style.color = "var(--text-sub)"; }, 4000);
+                dropLabel.innerHTML = '正在解析并渲染文档...';
+                try {
+                    const arrayBuffer = await file.arrayBuffer();
+                    pdfjsDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                    pdfTotalPages = pdfjsDoc.numPages;
+
+                    grid.innerHTML = '';
+
+                    // 渲染缩略图
+                    for (let i = 1; i <= pdfTotalPages; i++) {
+                        const page = await pdfjsDoc.getPage(i);
+                        const viewport = page.getViewport({ scale: 0.5 });
+
+                        const item = document.createElement('div');
+                        item.className = 'pdf-page-item';
+                        item.addEventListener('dblclick', () => openModal(i - 1));
+                        item.title = '双击可独立定制该页水印';
+
+                        const canvasWrap = document.createElement('div');
+                        canvasWrap.className = 'pdf-page-canvas-wrapper';
+
+                        const canvas = document.createElement('canvas');
+                        canvas.className = 'pdf-page-canvas';
+                        canvas.width = viewport.width;
+                        canvas.height = viewport.height;
+
+                        const ctx = canvas.getContext('2d');
+                        await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+
+                        // 水印专用透明 Canvas
+                        const wmCanvas = document.createElement('canvas');
+                        wmCanvas.className = 'wm-canvas-overlay';
+                        wmCanvas.id = `wm-canvas-${i - 1}`;
+                        wmCanvas.width = viewport.width;
+                        wmCanvas.height = viewport.height;
+
+                        const customBadge = document.createElement('div');
+                        customBadge.className = 'custom-badge';
+                        customBadge.id = `custom-badge-${i - 1}`;
+                        customBadge.innerText = '专属定制';
+
+                        canvasWrap.appendChild(canvas);
+                        canvasWrap.appendChild(wmCanvas);
+                        canvasWrap.appendChild(customBadge);
+
+                        const pageLabel = document.createElement('div');
+                        pageLabel.className = 'page-number-label';
+                        pageLabel.innerText = `第 ${i} 页`;
+
+                        item.appendChild(canvasWrap);
+                        item.appendChild(pageLabel);
+                        grid.appendChild(item);
+                    }
+
+                    dropLabel.style.display = 'none';
+                    dropLabel.innerHTML =
+                        '点击选择 PDF 文件<span class="hide-on-mobile">（或将文件拖到此处）</span>';
+
+                    fileInfoArea.style.display = 'flex';
+                    fileNameDiv.innerText = `📄 ${file.name} (共 ${pdfTotalPages} 页)`;
+
+                    grid.style.display = 'grid';
+
+                    updateAllOverlays(); // 初始化全局效果
+
+                    status.innerText = '渲染完成，所见即所得。双击单页可深度定制。';
+                    btn.disabled = false;
+                } catch (e) {
+                    console.error(e);
+                    dropLabel.innerHTML = '❌ 读取失败，可能是加密文件。点击重试';
+                    wmFileObj = null;
+                    btn.disabled = true;
+                }
             }
-        }
-    </script>
-</body>
+
+            // 同步全局设置与预览
+            function updateAllOverlays() {
+                const globalCfg = getGlobalConfig();
+
+                // 根据排布模式显隐间距滑块
+                const hideGapControls = globalCfg.mode === 'single';
+                document
+                    .getElementById('globalWmGapX')
+                    .parentElement.classList.toggle('u-hidden', hideGapControls);
+                document
+                    .getElementById('globalWmGapY')
+                    .parentElement.classList.toggle('u-hidden', hideGapControls);
+
+                for (let i = 0; i < pdfTotalPages; i++) {
+                    const wmCanvas = document.getElementById(`wm-canvas-${i}`);
+                    const badge = document.getElementById(`custom-badge-${i}`);
+                    if (!wmCanvas) continue;
+
+                    const ctx = wmCanvas.getContext('2d');
+                    const config = customWms[i] || globalCfg;
+
+                    renderWatermarkOnCanvas(ctx, wmCanvas.width, wmCanvas.height, config, 0.5);
+
+                    if (customWms[i]) badge.style.display = 'block';
+                    else badge.style.display = 'none';
+                }
+            }
+
+            // 打开单页定制弹窗
+            async function openModal(idx) {
+                currentModalIdx = idx;
+                document.getElementById('modalTitle').innerText = `定制第 ${idx + 1} 页`;
+
+                const config = customWms[idx] || getGlobalConfig();
+                setModalConfig(config);
+
+                // 渲染高清大图
+                const canvas = document.getElementById('modalCanvas');
+                const ctx = canvas.getContext('2d');
+                const page = await pdfjsDoc.getPage(idx + 1);
+                const viewport = page.getViewport({ scale: 1.5 });
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+
+                // 初始化弹窗水印画布尺寸
+                const wmCanvas = document.getElementById('modalWmCanvas');
+                wmCanvas.width = viewport.width;
+                wmCanvas.height = viewport.height;
+
+                updateModalPreview();
+                document.getElementById('wmModal').style.display = 'flex';
+                setTimeout(() => fitModalToWindow(), 10);
+            }
+
+            function updateModalPreview() {
+                const config = getModalConfig();
+                // 根据排布模式显隐间距滑块
+                const hideGapControls = config.mode === 'single';
+                document
+                    .getElementById('modalGapXGroup')
+                    .classList.toggle('u-hidden', hideGapControls);
+                document
+                    .getElementById('modalGapYGroup')
+                    .classList.toggle('u-hidden', hideGapControls);
+
+                const wmCanvas = document.getElementById('modalWmCanvas');
+                const ctx = wmCanvas.getContext('2d');
+                renderWatermarkOnCanvas(ctx, wmCanvas.width, wmCanvas.height, config, 1.5);
+            }
+
+            function closeModal() {
+                document.getElementById('wmModal').style.display = 'none';
+            }
+
+            function saveModalCustom() {
+                customWms[currentModalIdx] = getModalConfig();
+                updateAllOverlays();
+                closeModal();
+            }
+
+            function clearModalCustom() {
+                delete customWms[currentModalIdx];
+                updateAllOverlays();
+                closeModal();
+            }
+
+            // 将水印渲染为透明 PNG 供 pdf-lib 嵌入
+            function generateWatermarkPngUrl(width, height, config) {
+                const canvas = document.createElement('canvas');
+                // 为了保证清晰度，生成尺寸和实际页面一样大的图片
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                renderWatermarkOnCanvas(ctx, width, height, config);
+                return canvas.toDataURL('image/png');
+            }
+
+            // 最终保存
+            async function runWatermark() {
+                if (!wmFileObj) return;
+
+                const btn = document.getElementById('runWmBtn');
+                const status = document.getElementById('wmStatusText');
+
+                btn.disabled = true;
+                btn.innerText = '处理中...';
+                status.innerText = '正在压制带中文字体的水印，这可能需要几秒钟...';
+
+                try {
+                    const { PDFDocument } = PDFLib;
+                    const arrayBuffer = await wmFileObj.arrayBuffer();
+                    const newDoc = await PDFDocument.load(arrayBuffer);
+                    const globalCfg = getGlobalConfig();
+                    const pages = newDoc.getPages();
+
+                    for (let i = 0; i < pages.length; i++) {
+                        const page = pages[i];
+                        const wmConfig = customWms[i] || globalCfg;
+                        if (!wmConfig.text.trim()) continue;
+
+                        const { width, height } = page.getSize();
+                        status.innerText = `正在处理第 ${i + 1}/${pages.length} 页...`;
+
+                        // 利用前端 Canvas 生成该页专属的水印层透明 PNG
+                        // 这里我们采用和缩略图一模一样的绘制逻辑，保证 100% 还原
+                        // 为了 PDF 打印清晰度，Canvas 生成分辨率提升 2 倍
+                        const scale = 2.0;
+                        const dataUrl = generateWatermarkPngUrl(width * scale, height * scale, {
+                            ...wmConfig,
+                            size: wmConfig.size * scale, // 字号跟着放大
+                        });
+
+                        // 嵌入到 PDF
+                        const pngImage = await newDoc.embedPng(dataUrl);
+                        page.drawImage(pngImage, {
+                            x: 0,
+                            y: 0,
+                            width: width,
+                            height: height,
+                        });
+                    }
+
+                    status.innerText = '正在打包生成最终文件...';
+                    const pdfBytes = await newDoc.save();
+                    const baseName = wmFileObj.name.replace(/\.[^/.]+$/, '');
+                    triggerDownload(pdfBytes, `${baseName}_水印.pdf`);
+
+                    status.innerText = '✅ 处理完成，已下载';
+                    status.style.color = 'var(--success)';
+                } catch (e) {
+                    console.error(e);
+                    status.innerText = '❌ 处理失败';
+                    status.style.color = 'var(--danger)';
+                } finally {
+                    btn.disabled = false;
+                    btn.innerText = '添加水印并保存';
+                    setTimeout(() => {
+                        status.innerText = '文件已就绪，可继续调整参数';
+                        status.style.color = 'var(--text-sub)';
+                    }, 4000);
+                }
+            }
+        </script>
+    </body>
 </html>
