@@ -1,6 +1,7 @@
 let splitFileObj = null;
 let splitPdfDoc = null;
 let splitTotalPages = 0;
+let splitResetTimer = null;
 const splitFileInput = document.getElementById('splitFileInput');
 const splitResetBtn = document.getElementById('splitResetBtn');
 const runSplitBtn = document.getElementById('runSplitBtn');
@@ -84,6 +85,7 @@ async function loadSplitFile(file) {
         alert('只能选择 PDF 文件！');
         return;
     }
+    if (splitResetTimer) { clearTimeout(splitResetTimer); splitResetTimer = null; }
     splitFileObj = file;
 
     const dropLabel = document.getElementById('splitDropZone');
@@ -201,7 +203,7 @@ async function runSplit() {
     } finally {
         btn.disabled = false;
         btn.innerText = '执行拆分';
-        setTimeout(() => {
+        splitResetTimer = setTimeout(() => {
             status.innerText = '文件已就绪，请选择拆分模式';
             status.style.color = 'var(--text-sub)';
         }, 4000);

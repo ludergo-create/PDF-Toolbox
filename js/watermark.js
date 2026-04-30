@@ -5,6 +5,7 @@ let pdfTotalPages = 0;
 let pdfjsDoc = null;
 let customWms = {};
 let currentModalIdx = -1;
+let wmResetTimer = null;
 
 const wmFileInput = document.getElementById('wmFileInput');
 const wmResetBtn = document.getElementById('wmResetBtn');
@@ -217,6 +218,7 @@ async function loadWmFile(file) {
         alert('只能选择 PDF 文件！');
         return;
     }
+    if (wmResetTimer) { clearTimeout(wmResetTimer); wmResetTimer = null; }
     wmFileObj = file;
     customWms = {};
 
@@ -460,7 +462,7 @@ async function runWatermark() {
     } finally {
         btn.disabled = false;
         btn.innerText = '添加水印并保存';
-        setTimeout(() => {
+        wmResetTimer = setTimeout(() => {
             status.innerText = '文件已就绪，可继续调整参数';
             status.style.color = 'var(--text-sub)';
         }, 4000);

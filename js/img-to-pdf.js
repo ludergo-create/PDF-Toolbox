@@ -1,4 +1,5 @@
 const imgsMap = new Map();
+let imgResetTimer = null;
 const sortableListEl = document.getElementById('sortableImgList');
 const addImgsInput = document.getElementById('addImgsInput');
 const clearImgBtn = document.getElementById('clearImgBtn');
@@ -11,6 +12,7 @@ runImg2PdfBtn.addEventListener('click', runImgToPdf);
 new Sortable(sortableListEl, { animation: 150 });
 
 function handleImgsAdded(event) {
+    if (imgResetTimer) { clearTimeout(imgResetTimer); imgResetTimer = null; }
     addImgsToList(event.target.files);
     event.target.value = '';
 }
@@ -89,6 +91,7 @@ dropZone.addEventListener('dragover', (e) => {
 });
 dropZone.addEventListener('drop', (e) => {
     e.preventDefault();
+    if (imgResetTimer) { clearTimeout(imgResetTimer); imgResetTimer = null; }
     addImgsToList(e.dataTransfer.files);
 });
 
@@ -135,7 +138,7 @@ async function runImgToPdf() {
     } finally {
         btn.disabled = false;
         btn.innerText = '合并为 PDF';
-        setTimeout(() => {
+        imgResetTimer = setTimeout(() => {
             updateImgListStatus();
         }, 4000);
     }

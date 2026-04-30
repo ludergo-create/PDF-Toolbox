@@ -1,4 +1,5 @@
 const mergeFilesMap = new Map();
+let mergeResetTimer = null;
 const sortableListEl = document.getElementById('sortableList');
 const addFilesInput = document.getElementById('addFilesInput');
 const clearMergeBtn = document.getElementById('clearMergeBtn');
@@ -11,6 +12,7 @@ runMergeBtn.addEventListener('click', runMerge);
 new Sortable(sortableListEl, { animation: 150 });
 
 function handleMergeFilesAdded(event) {
+    if (mergeResetTimer) { clearTimeout(mergeResetTimer); mergeResetTimer = null; }
     addFilesToMergeList(event.target.files);
     event.target.value = '';
 }
@@ -76,6 +78,7 @@ mergeDropZone.addEventListener('dragover', (e) => {
 });
 mergeDropZone.addEventListener('drop', (e) => {
     e.preventDefault();
+    if (mergeResetTimer) { clearTimeout(mergeResetTimer); mergeResetTimer = null; }
     addFilesToMergeList(e.dataTransfer.files);
 });
 
@@ -129,7 +132,7 @@ async function runMerge() {
     } finally {
         btn.disabled = false;
         btn.innerText = '开始合并';
-        setTimeout(() => {
+        mergeResetTimer = setTimeout(() => {
             updateMergeListStatus();
         }, 4000);
     }

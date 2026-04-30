@@ -5,6 +5,7 @@ let pdfTotalPages = 0;
 let pdfjsDoc = null; // I-9: 缓存 PDF 文档对象
 let pagesState = []; // [{deleted: false, rotation: 0}]
 let currentPreviewIdx = -1;
+let editResetTimer = null;
 
 const editFileInput = document.getElementById('editFileInput');
 const editResetBtn = document.getElementById('editResetBtn');
@@ -126,6 +127,7 @@ async function loadEditFile(file) {
         alert('只能选择 PDF 文件！');
         return;
     }
+    if (editResetTimer) { clearTimeout(editResetTimer); editResetTimer = null; }
     editFileObj = file;
 
     const dropLabel = document.getElementById('editDropZone');
@@ -322,7 +324,7 @@ async function runEdit() {
     } finally {
         btn.disabled = false;
         btn.innerText = '应用修改并保存';
-        setTimeout(() => {
+        editResetTimer = setTimeout(() => {
             status.innerText = '文件已就绪，可继续调整';
             status.style.color = 'var(--text-sub)';
         }, 4000);

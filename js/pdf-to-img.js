@@ -2,6 +2,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'js/vendor/pdf.worker.min.js';
 
 let pdfFileObj = null;
 let cachedPdfDoc = null; // I-9: 缓存 PDF 文档对象
+let pdfResetTimer = null;
 const pdfFileInput = document.getElementById('pdfFileInput');
 const pdfResetBtn = document.getElementById('pdfResetBtn');
 const runPdfBtn = document.getElementById('runPdfBtn');
@@ -42,6 +43,7 @@ async function loadPdfFile(file) {
         alert('只能选择 PDF 文件！');
         return;
     }
+    if (pdfResetTimer) { clearTimeout(pdfResetTimer); pdfResetTimer = null; }
     pdfFileObj = file;
 
     const dropLabel = document.getElementById('pdfDropZone');
@@ -138,7 +140,7 @@ async function runPdfToImg() {
     } finally {
         btn.disabled = false;
         btn.innerText = '开始转换并打包';
-        setTimeout(() => {
+        pdfResetTimer = setTimeout(() => {
             status.innerText = '文件已就绪，请配置转换参数';
             status.style.color = 'var(--text-sub)';
         }, 4000);
