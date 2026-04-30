@@ -2,9 +2,12 @@ let splitFileObj = null;
 let splitPdfDoc = null;
 let splitTotalPages = 0;
 let splitResetTimer = null;
+let splitLoadToken = 0;
 const splitFileInput = document.getElementById('splitFileInput');
 const splitResetBtn = document.getElementById('splitResetBtn');
 const runSplitBtn = document.getElementById('runSplitBtn');
+const splitDropDefaultHtml =
+    '点击选择 PDF 文件<span class="hide-on-mobile">（或将文件拖到此处）</span>';
 
 splitFileInput.addEventListener('change', handleSplitFileAdded);
 splitResetBtn.addEventListener('click', resetSplitFile);
@@ -71,13 +74,41 @@ function handleSplitFileAdded(event) {
     event.target.value = '';
 }
 
-function resetSplitFile() {
+function clearSplitResetTimer() {
+    if (splitResetTimer) {
+        clearTimeout(splitResetTimer);
+        splitResetTimer = null;
+    }
+}
+
+function scheduleSplitStatusReset(loadToken) {
+    clearSplitResetTimer();
+    splitResetTimer = setTimeout(() => {
+        splitResetTimer = null;
+        if (loadToken !== splitLoadToken || !splitFileObj || !splitPdfDoc) return;
+
+        document.getElementById('splitStatusText').innerText = '文件已就绪，请选择拆分模式';
+        document.getElementById('splitStatusText').style.color = 'var(--text-sub)';
+    }, 4000);
+}
+
+function clearSplitLoadedState() {
     splitFileObj = null;
     splitPdfDoc = null;
+    splitTotalPages = 0;
     document.getElementById('splitDropZone').style.display = 'block';
+    document.getElementById('splitDropZone').innerHTML = splitDropDefaultHtml;
     document.getElementById('fileInfoArea').style.display = 'none';
     document.getElementById('splitStatusText').innerText = '未加载文件';
+    document.getElementById('splitStatusText').style.color = 'var(--text-sub)';
     document.getElementById('runSplitBtn').disabled = true;
+    document.getElementById('runSplitBtn').innerText = '执行拆分';
+}
+
+function resetSplitFile() {
+    splitLoadToken += 1;
+    clearSplitResetTimer();
+    clearSplitLoadedState();
 }
 
 async function loadSplitFile(file) {
@@ -85,7 +116,10 @@ async function loadSplitFile(file) {
         alert('只能选择 PDF 文件！');
         return;
     }
-    if (splitResetTimer) { clearTimeout(splitResetTimer); splitResetTimer = null; }
+    splitLoadToken += 1;
+    const loadToken = splitLoadToken;
+    clearSplitResetTimer();
+    clearSplitLoadedState();
     splitFileObj = file;
 
     const dropLabel = document.getElementById('splitDropZone');
@@ -97,13 +131,14 @@ async function loadSplitFile(file) {
     dropLabel.innerHTML = '正在读取文档...';
     try {
         const arrayBuffer = await file.arrayBuffer();
+        if (loadToken !== splitLoadToken) return;
         const { PDFDocument } = PDFLib;
         splitPdfDoc = await PDFDocument.load(arrayBuffer);
+        if (loadToken !== splitLoadToken) return;
         splitTotalPages = splitPdfDoc.getPageCount();
 
         dropLabel.style.display = 'none';
-        dropLabel.innerHTML =
-            '点击选择 PDF 文件<span class="hide-on-mobile">（或将文件拖到此处）</span>';
+        dropLabel.innerHTML = splitDropDefaultHtml;
 
         fileInfoArea.style.display = 'flex';
         fileNameDiv.innerText = `📄 ${file.name} (共 ${splitTotalPages} 页)`;
@@ -111,9 +146,12 @@ async function loadSplitFile(file) {
         status.innerText = '文件已就绪，请选择拆分模式';
         btn.disabled = false;
     } catch (e) {
+        if (loadToken !== splitLoadToken) return;
         console.error(e);
+        clearSplitLoadedState();
         dropLabel.innerHTML = '❌ 读取失败，可能是加密文件。点击重试';
-        splitFileObj = null;
+        status.innerText = '读取失败，请重新选择文件';
+        status.style.color = 'var(--danger)';
         btn.disabled = true;
     }
 }
@@ -124,6 +162,7 @@ async function runSplit() {
         return;
     }
 
+    const runToken = splitLoadToken;
     const mode = document.querySelector('input[name="splitMode"]:checked').value;
     const exportTasks = [];
 
@@ -161,6 +200,7 @@ async function runSplit() {
 
     const btn = document.getElementById('runSplitBtn');
     const status = document.getElementById('splitStatusText');
+    clearSplitResetTimer();
     btn.disabled = true;
     btn.innerText = '处理中...';
     status.innerText = '正在切分并打包...';
@@ -171,14 +211,18 @@ async function runSplit() {
         const zip = new JSZip();
 
         for (let i = 0; i < exportTasks.length; i++) {
+            if (runToken !== splitLoadToken) return;
             const task = exportTasks[i];
             status.innerText = `正在处理第 ${i + 1} / ${exportTasks.length} 个文件...`;
 
             const newDoc = await PDFDocument.create();
+            if (runToken !== splitLoadToken) return;
             const copiedPages = await newDoc.copyPages(splitPdfDoc, task.pages);
+            if (runToken !== splitLoadToken) return;
             copiedPages.forEach((p) => newDoc.addPage(p));
 
             const bytes = await newDoc.save();
+            if (runToken !== splitLoadToken) return;
             const fileName = `${baseName}_${task.suffix}.pdf`;
 
             if (exportTasks.length === 1) {
@@ -189,23 +233,24 @@ async function runSplit() {
         }
 
         if (exportTasks.length > 1) {
+            if (runToken !== splitLoadToken) return;
             status.innerText = '正在生成 ZIP 压缩包...';
             const zipContent = await zip.generateAsync({ type: 'blob' });
+            if (runToken !== splitLoadToken) return;
             triggerDownload(zipContent, `${baseName}_拆分包.zip`, 'application/zip');
         }
 
         status.innerText = '✅ 拆分完成，已下载';
         status.style.color = 'var(--success)';
     } catch (e) {
+        if (runToken !== splitLoadToken) return;
         console.error(e);
         status.innerText = '❌ 处理失败';
         status.style.color = 'var(--danger)';
     } finally {
+        if (runToken !== splitLoadToken || !splitFileObj || !splitPdfDoc) return;
         btn.disabled = false;
         btn.innerText = '执行拆分';
-        splitResetTimer = setTimeout(() => {
-            status.innerText = '文件已就绪，请选择拆分模式';
-            status.style.color = 'var(--text-sub)';
-        }, 4000);
+        scheduleSplitStatusReset(runToken);
     }
 }

@@ -6,6 +6,7 @@ let pdfjsDoc = null;
 let customWms = {};
 let currentModalIdx = -1;
 let wmResetTimer = null;
+let wmLoadToken = 0;
 
 const wmFileInput = document.getElementById('wmFileInput');
 const wmResetBtn = document.getElementById('wmResetBtn');
@@ -23,6 +24,8 @@ const wmZoomMgr = createZoomPanManager(
     document.getElementById('modalZoomContainer'),
     document.getElementById('modalZoomLevel')
 );
+const wmDropDefaultHtml =
+    '点击选择 PDF 文件<span class="hide-on-mobile">（或将文件拖到此处）</span>';
 
 wmFileInput.addEventListener('change', handleWmFileAdded);
 wmResetBtn.addEventListener('click', resetWmFile);
@@ -199,18 +202,62 @@ function handleWmFileAdded(event) {
     event.target.value = '';
 }
 
-function resetWmFile() {
-    wmFileObj = null;
+function clearWmResetTimer() {
+    if (wmResetTimer) {
+        clearTimeout(wmResetTimer);
+        wmResetTimer = null;
+    }
+}
+
+function scheduleWmStatusReset(loadToken) {
+    clearWmResetTimer();
+    wmResetTimer = setTimeout(() => {
+        wmResetTimer = null;
+        if (loadToken !== wmLoadToken || !wmFileObj || !pdfjsDoc) return;
+
+        document.getElementById('wmStatusText').innerText = '文件已就绪，可继续调整参数';
+        document.getElementById('wmStatusText').style.color = 'var(--text-sub)';
+    }, 4000);
+}
+
+function destroyWmPdfDoc() {
     if (pdfjsDoc) {
         pdfjsDoc.destroy();
         pdfjsDoc = null;
     }
+}
+
+function clearWmModalCanvases() {
+    ['modalCanvas', 'modalWmCanvas'].forEach((id) => {
+        const canvas = document.getElementById(id);
+        canvas.width = 0;
+        canvas.height = 0;
+    });
+}
+
+function clearWmLoadedState() {
+    wmFileObj = null;
+    pdfTotalPages = 0;
+    destroyWmPdfDoc();
     customWms = {};
+    currentModalIdx = -1;
+    document.getElementById('wmModal').style.display = 'none';
+    clearWmModalCanvases();
     document.getElementById('wmDropZone').style.display = 'block';
+    document.getElementById('wmDropZone').innerHTML = wmDropDefaultHtml;
     document.getElementById('fileInfoArea').style.display = 'none';
+    document.getElementById('wmPagesGrid').innerHTML = '';
     document.getElementById('wmPagesGrid').style.display = 'none';
     document.getElementById('wmStatusText').innerText = '未加载文件';
+    document.getElementById('wmStatusText').style.color = 'var(--text-sub)';
     document.getElementById('runWmBtn').disabled = true;
+    document.getElementById('runWmBtn').innerText = '添加水印并保存';
+}
+
+function resetWmFile() {
+    wmLoadToken += 1;
+    clearWmResetTimer();
+    clearWmLoadedState();
 }
 
 async function loadWmFile(file) {
@@ -218,7 +265,10 @@ async function loadWmFile(file) {
         alert('只能选择 PDF 文件！');
         return;
     }
-    if (wmResetTimer) { clearTimeout(wmResetTimer); wmResetTimer = null; }
+    wmLoadToken += 1;
+    const loadToken = wmLoadToken;
+    clearWmResetTimer();
+    clearWmLoadedState();
     wmFileObj = file;
     customWms = {};
 
@@ -232,13 +282,20 @@ async function loadWmFile(file) {
     dropLabel.innerHTML = '正在解析并渲染文档...';
     try {
         const arrayBuffer = await file.arrayBuffer();
-        pdfjsDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        if (loadToken !== wmLoadToken) return;
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        if (loadToken !== wmLoadToken) {
+            pdf.destroy();
+            return;
+        }
+        pdfjsDoc = pdf;
         pdfTotalPages = pdfjsDoc.numPages;
 
         grid.innerHTML = '';
 
         // 渲染缩略图
         for (let i = 1; i <= pdfTotalPages; i++) {
+            if (loadToken !== wmLoadToken) return;
             const page = await pdfjsDoc.getPage(i);
             const viewport = page.getViewport({ scale: 0.5 });
 
@@ -257,6 +314,7 @@ async function loadWmFile(file) {
 
             const ctx = canvas.getContext('2d');
             await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+            if (loadToken !== wmLoadToken) return;
 
             // 水印专用透明 Canvas
             const wmCanvas = document.createElement('canvas');
@@ -284,8 +342,7 @@ async function loadWmFile(file) {
         }
 
         dropLabel.style.display = 'none';
-        dropLabel.innerHTML =
-            '点击选择 PDF 文件<span class="hide-on-mobile">（或将文件拖到此处）</span>';
+        dropLabel.innerHTML = wmDropDefaultHtml;
 
         fileInfoArea.style.display = 'flex';
         fileNameDiv.innerText = `📄 ${file.name} (共 ${pdfTotalPages} 页)`;
@@ -297,12 +354,15 @@ async function loadWmFile(file) {
         status.innerText = '渲染完成，所见即所得。双击单页可深度定制。';
         btn.disabled = false;
     } catch (e) {
+        if (loadToken !== wmLoadToken) return;
         console.error(e);
         const hint = isPasswordError(e)
             ? '❌ 该 PDF 可能受密码保护，请先解密再试。'
             : '❌ 读取失败，可能是加密文件。点击重试';
+        clearWmLoadedState();
         dropLabel.innerHTML = hint;
-        wmFileObj = null;
+        status.innerText = '读取失败，请重新选择文件';
+        status.style.color = 'var(--danger)';
         btn.disabled = true;
     }
 }
@@ -407,9 +467,11 @@ function generateWatermarkPngUrl(width, height, config) {
 async function runWatermark() {
     if (!wmFileObj) return;
 
+    const runToken = wmLoadToken;
     const btn = document.getElementById('runWmBtn');
     const status = document.getElementById('wmStatusText');
 
+    clearWmResetTimer();
     btn.disabled = true;
     btn.innerText = '处理中...';
     status.innerText = '正在压制带中文字体的水印，这可能需要几秒钟...';
@@ -417,11 +479,14 @@ async function runWatermark() {
     try {
         const { PDFDocument } = PDFLib;
         const arrayBuffer = await wmFileObj.arrayBuffer();
+        if (runToken !== wmLoadToken) return;
         const newDoc = await PDFDocument.load(arrayBuffer);
+        if (runToken !== wmLoadToken) return;
         const globalCfg = getGlobalConfig();
         const pages = newDoc.getPages();
 
         for (let i = 0; i < pages.length; i++) {
+            if (runToken !== wmLoadToken) return;
             const page = pages[i];
             const wmConfig = customWms[i] || globalCfg;
             if (!wmConfig.text.trim()) continue;
@@ -440,6 +505,7 @@ async function runWatermark() {
 
             // 嵌入到 PDF
             const pngImage = await newDoc.embedPng(dataUrl);
+            if (runToken !== wmLoadToken) return;
             page.drawImage(pngImage, {
                 x: 0,
                 y: 0,
@@ -448,23 +514,24 @@ async function runWatermark() {
             });
         }
 
+        if (runToken !== wmLoadToken) return;
         status.innerText = '正在打包生成最终文件...';
         const pdfBytes = await newDoc.save();
+        if (runToken !== wmLoadToken) return;
         const baseName = wmFileObj.name.replace(/\.[^/.]+$/, '');
         triggerDownload(pdfBytes, `${baseName}_水印.pdf`);
 
         status.innerText = '✅ 处理完成，已下载';
         status.style.color = 'var(--success)';
     } catch (e) {
+        if (runToken !== wmLoadToken) return;
         console.error(e);
         status.innerText = '❌ 处理失败';
         status.style.color = 'var(--danger)';
     } finally {
+        if (runToken !== wmLoadToken || !wmFileObj || !pdfjsDoc) return;
         btn.disabled = false;
         btn.innerText = '添加水印并保存';
-        wmResetTimer = setTimeout(() => {
-            status.innerText = '文件已就绪，可继续调整参数';
-            status.style.color = 'var(--text-sub)';
-        }, 4000);
+        scheduleWmStatusReset(runToken);
     }
 }

@@ -6,6 +6,7 @@ let pdfjsDoc = null; // I-9: 缓存 PDF 文档对象
 let pagesState = []; // [{deleted: false, rotation: 0}]
 let currentPreviewIdx = -1;
 let editResetTimer = null;
+let editLoadToken = 0;
 
 const editFileInput = document.getElementById('editFileInput');
 const editResetBtn = document.getElementById('editResetBtn');
@@ -30,6 +31,8 @@ const previewZoomMgr = createZoomPanManager(
     document.getElementById('previewModalZoomContainer'),
     document.getElementById('previewModalZoomLevel')
 );
+const editDropDefaultHtml =
+    '点击选择 PDF 文件<span class="hide-on-mobile">（或将文件拖到此处）</span>';
 
 editFileInput.addEventListener('change', handleEditFileAdded);
 editResetBtn.addEventListener('click', resetEditFile);
@@ -108,18 +111,61 @@ function handleEditFileAdded(event) {
     event.target.value = '';
 }
 
-function resetEditFile() {
-    editFileObj = null;
+function clearEditResetTimer() {
+    if (editResetTimer) {
+        clearTimeout(editResetTimer);
+        editResetTimer = null;
+    }
+}
+
+function scheduleEditStatusReset(loadToken) {
+    clearEditResetTimer();
+    editResetTimer = setTimeout(() => {
+        editResetTimer = null;
+        if (loadToken !== editLoadToken || !editFileObj || !pdfjsDoc) return;
+
+        document.getElementById('editStatusText').innerText = '文件已就绪，可继续调整';
+        document.getElementById('editStatusText').style.color = 'var(--text-sub)';
+    }, 4000);
+}
+
+function destroyEditPdfDoc() {
     if (pdfjsDoc) {
         pdfjsDoc.destroy();
         pdfjsDoc = null;
     }
+}
+
+function clearEditPreviewCanvas() {
+    const canvas = document.getElementById('previewModalCanvas');
+    canvas.width = 0;
+    canvas.height = 0;
+}
+
+function clearEditLoadedState() {
+    editFileObj = null;
+    pdfTotalPages = 0;
+    pagesState = [];
+    currentPreviewIdx = -1;
+    destroyEditPdfDoc();
+    document.getElementById('previewModal').style.display = 'none';
+    clearEditPreviewCanvas();
     document.getElementById('editDropZone').style.display = 'block';
+    document.getElementById('editDropZone').innerHTML = editDropDefaultHtml;
     document.getElementById('fileInfoArea').style.display = 'none';
     document.getElementById('globalToolbar').style.display = 'none';
+    document.getElementById('pagesGrid').innerHTML = '';
     document.getElementById('pagesGrid').style.display = 'none';
     document.getElementById('editStatusText').innerText = '未加载文件';
+    document.getElementById('editStatusText').style.color = 'var(--text-sub)';
     document.getElementById('runEditBtn').disabled = true;
+    document.getElementById('runEditBtn').innerText = '应用修改并保存';
+}
+
+function resetEditFile() {
+    editLoadToken += 1;
+    clearEditResetTimer();
+    clearEditLoadedState();
 }
 
 async function loadEditFile(file) {
@@ -127,7 +173,10 @@ async function loadEditFile(file) {
         alert('只能选择 PDF 文件！');
         return;
     }
-    if (editResetTimer) { clearTimeout(editResetTimer); editResetTimer = null; }
+    editLoadToken += 1;
+    const loadToken = editLoadToken;
+    clearEditResetTimer();
+    clearEditLoadedState();
     editFileObj = file;
 
     const dropLabel = document.getElementById('editDropZone');
@@ -142,7 +191,12 @@ async function loadEditFile(file) {
     try {
         // 1. 获取 PDF 并缓存 (I-9)
         const arrayBuffer = await file.arrayBuffer();
+        if (loadToken !== editLoadToken) return;
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        if (loadToken !== editLoadToken) {
+            pdf.destroy();
+            return;
+        }
         pdfjsDoc = pdf;
         pdfTotalPages = pdf.numPages;
 
@@ -155,6 +209,7 @@ async function loadEditFile(file) {
 
         // 3. 渲染缩略图
         for (let i = 1; i <= pdfTotalPages; i++) {
+            if (loadToken !== editLoadToken) return;
             const page = await pdf.getPage(i);
             const viewport = page.getViewport({ scale: 0.5 }); // 缩略图比例
 
@@ -175,6 +230,7 @@ async function loadEditFile(file) {
 
             const ctx = canvas.getContext('2d');
             await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+            if (loadToken !== editLoadToken) return;
 
             const mask = document.createElement('div');
             mask.className = 'page-deleted-mask';
@@ -222,8 +278,7 @@ async function loadEditFile(file) {
 
         // 4. 更新 UI
         dropLabel.style.display = 'none';
-        dropLabel.innerHTML =
-            '点击选择 PDF 文件<span class="hide-on-mobile">（或将文件拖到此处）</span>';
+        dropLabel.innerHTML = editDropDefaultHtml;
 
         fileInfoArea.style.display = 'flex';
         fileNameDiv.innerText = `📄 ${file.name} (共 ${pdfTotalPages} 页)`;
@@ -234,12 +289,15 @@ async function loadEditFile(file) {
         status.innerText = '渲染完成，请直观地调整您的页面';
         btn.disabled = false;
     } catch (e) {
+        if (loadToken !== editLoadToken) return;
         console.error(e);
         const hint = isPasswordError(e)
             ? '❌ 该 PDF 可能受密码保护，请先解密再试。'
             : '❌ 读取失败，可能是加密文件。点击重试';
+        clearEditLoadedState();
         dropLabel.innerHTML = hint;
-        editFileObj = null;
+        status.innerText = '读取失败，请重新选择文件';
+        status.style.color = 'var(--danger)';
         btn.disabled = true;
     }
 }
@@ -278,6 +336,8 @@ function recoverAll() {
 async function runEdit() {
     if (!editFileObj) return;
 
+    const runToken = editLoadToken;
+
     // 检查是否全部删除了
     const aliveCount = pagesState.filter((p) => !p.deleted).length;
     if (aliveCount === 0) {
@@ -288,6 +348,7 @@ async function runEdit() {
     const btn = document.getElementById('runEditBtn');
     const status = document.getElementById('editStatusText');
 
+    clearEditResetTimer();
     btn.disabled = true;
     btn.innerText = '处理中...';
     status.innerText = '正在生成最终文档...';
@@ -295,10 +356,13 @@ async function runEdit() {
     try {
         const { PDFDocument, degrees } = PDFLib;
         const arrayBuffer = await editFileObj.arrayBuffer();
+        if (runToken !== editLoadToken) return;
         const newDoc = await PDFDocument.load(arrayBuffer);
+        if (runToken !== editLoadToken) return;
 
         // 必须从后往前删，否则索引会乱
         for (let i = pdfTotalPages - 1; i >= 0; i--) {
+            if (runToken !== editLoadToken) return;
             if (pagesState[i].deleted) {
                 newDoc.removePage(i);
             } else {
@@ -312,21 +376,21 @@ async function runEdit() {
         }
 
         const pdfBytes = await newDoc.save();
+        if (runToken !== editLoadToken) return;
         const baseName = editFileObj.name.replace(/\.[^/.]+$/, '');
         triggerDownload(pdfBytes, `${baseName}_已调整.pdf`);
 
         status.innerText = '✅ 修改完成，已下载';
         status.style.color = 'var(--success)';
     } catch (e) {
+        if (runToken !== editLoadToken) return;
         console.error(e);
         status.innerText = '❌ 处理失败';
         status.style.color = 'var(--danger)';
     } finally {
+        if (runToken !== editLoadToken || !editFileObj || !pdfjsDoc) return;
         btn.disabled = false;
         btn.innerText = '应用修改并保存';
-        editResetTimer = setTimeout(() => {
-            status.innerText = '文件已就绪，可继续调整';
-            status.style.color = 'var(--text-sub)';
-        }, 4000);
+        scheduleEditStatusReset(runToken);
     }
 }
