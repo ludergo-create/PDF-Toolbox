@@ -1,4 +1,4 @@
-/* exported generateId, isPdfFile, isImageFile, triggerDownload, createModalFocusManager, bindDropZone, setStatus, showFileLoaded, updateFooterYear */
+/* exported generateId, isPdfFile, isImageFile, isPasswordError, triggerDownload, createModalFocusManager, createZoomPanManager, bindDropZone, setStatus, showFileLoaded, updateFooterYear */
 
 // ================= 全局基础逻辑 =================
 
@@ -69,7 +69,17 @@ function toggleTheme() {
 }
 
 function generateId() {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID().replace(/-/g, '').slice(0, 9);
+    }
     return Math.random().toString(36).slice(2, 11);
+}
+
+function isPasswordError(error) {
+    const msg = (error && error.message ? error.message : '').toLowerCase();
+    return (
+        msg.includes('password') || msg.includes('encrypted') || msg.includes('passwordrequired')
+    );
 }
 
 function hasFileExtension(fileName, extensions) {
@@ -109,7 +119,7 @@ function triggerDownload(bytes, filename, mimeType = 'application/pdf') {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
 
 // ================= 侧边栏动态渲染 (I-1) =================
@@ -503,24 +513,24 @@ function registerServiceWorker() {
 }
 
 function renderIcpBadge() {
-    var config = window.SITE_CONFIG || {};
-    var icp = (config.icpNumber || '').trim();
+    const config = window.SITE_CONFIG || {};
+    const icp = (config.icpNumber || '').trim();
     if (!icp) return;
 
-    var footer = document.querySelector('.footer');
+    const footer = document.querySelector('.footer');
     if (!footer) return;
 
-    var existing = document.getElementById('icp-line');
+    const existing = document.getElementById('icp-line');
     if (existing) {
         existing.querySelector('a').textContent = icp;
         return;
     }
 
-    var line = document.createElement('p');
+    const line = document.createElement('p');
     line.id = 'icp-line';
     line.style.cssText = 'font-size:12px; margin-top:6px;';
 
-    var link = document.createElement('a');
+    const link = document.createElement('a');
     link.href = 'https://beian.miit.gov.cn/';
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
@@ -598,12 +608,96 @@ function createModalFocusManager(modal, onEscape) {
     };
 }
 
+/** 模态框缩放平移管理器 */
+function createZoomPanManager(containerEl, canvasEl, zoomLevelEl) {
+    let zoom = 1;
+    let panX = 0;
+    let panY = 0;
+    let isPanning = false;
+    let startX, startY;
+
+    function applyTransform() {
+        canvasEl.parentElement.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+        if (zoomLevelEl) zoomLevelEl.innerText = Math.round(zoom * 100) + '%';
+    }
+
+    function zoomBy(delta) {
+        zoom = Math.max(0.1, Math.min(zoom + delta, 5));
+        applyTransform();
+    }
+
+    function fitToWindow() {
+        const wrapW = containerEl.clientWidth - 40;
+        const wrapH = containerEl.clientHeight - 40;
+        if (canvasEl.width && canvasEl.height) {
+            const scaleX = wrapW / canvasEl.width;
+            const scaleY = wrapH / canvasEl.height;
+            zoom = Math.max(0.1, Math.min(scaleX, scaleY, 1));
+        } else {
+            zoom = 1;
+        }
+        panX = 0;
+        panY = 0;
+        applyTransform();
+    }
+
+    function bindWheel() {
+        containerEl.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            zoomBy(e.deltaY < 0 ? 0.1 : -0.1);
+        });
+    }
+
+    function bindPan() {
+        containerEl.addEventListener('mousedown', (e) => {
+            isPanning = true;
+            startX = e.clientX - panX;
+            startY = e.clientY - panY;
+            containerEl.style.cursor = 'grabbing';
+        });
+        containerEl.addEventListener('mousemove', (e) => {
+            if (!isPanning) return;
+            panX = e.clientX - startX;
+            panY = e.clientY - startY;
+            applyTransform();
+        });
+        containerEl.addEventListener('mouseup', () => {
+            isPanning = false;
+            containerEl.style.cursor = 'grab';
+        });
+        containerEl.addEventListener('mouseleave', () => {
+            isPanning = false;
+            containerEl.style.cursor = 'grab';
+        });
+    }
+
+    bindWheel();
+    bindPan();
+
+    return { zoomBy, fitToWindow, applyTransform };
+}
+
 /** 动态更新 footer 中的版权年份 */
 function updateFooterYear() {
+    const yearSpan = document.getElementById('copyrightYear');
+    if (yearSpan) {
+        yearSpan.textContent = new Date().getFullYear();
+        return;
+    }
+    // 兼容：旧 HTML 中硬编码年份的情况
     const footer = document.querySelector('.footer');
     if (!footer) return;
     const year = new Date().getFullYear();
-    footer.innerHTML = footer.innerHTML.replace(/© \d{4}/, `© ${year}`);
+    const walker = document.createTreeWalker(footer, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {
+        if (walker.currentNode.nodeValue.includes('©')) {
+            walker.currentNode.nodeValue = walker.currentNode.nodeValue.replace(
+                /©\s*\d{4}/,
+                `© ${year}`
+            );
+            return;
+        }
+    }
 }
 
 // 页面加载完成后初始化主题

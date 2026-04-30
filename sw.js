@@ -22,6 +22,11 @@ const STATIC_ASSETS = [
     './js/pdf-to-img.js',
     './js/img-to-pdf.js',
     './js/watermark.js',
+    './js/vendor/pdf-lib.min.js',
+    './js/vendor/pdf.min.js',
+    './js/vendor/pdf.worker.min.js',
+    './js/vendor/jszip.min.js',
+    './js/vendor/Sortable.min.js',
 ];
 
 self.addEventListener('install', (event) => {

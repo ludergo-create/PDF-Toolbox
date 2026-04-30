@@ -6,11 +6,6 @@ let pdfjsDoc = null; // I-9: 缓存 PDF 文档对象
 let pagesState = []; // [{deleted: false, rotation: 0}]
 let currentPreviewIdx = -1;
 
-let previewZoom = 1;
-let previewPanX = 0;
-let previewPanY = 0;
-let isPreviewPanning = false;
-let pStartX, pStartY;
 const editFileInput = document.getElementById('editFileInput');
 const editResetBtn = document.getElementById('editResetBtn');
 const rotateAllLeftBtn = document.getElementById('rotateAllLeftBtn');
@@ -29,77 +24,25 @@ const previewModalFocus = createModalFocusManager(
     closePreviewModal
 );
 
+const previewZoomMgr = createZoomPanManager(
+    document.getElementById('previewModalCanvasWrap'),
+    document.getElementById('previewModalZoomContainer'),
+    document.getElementById('previewModalZoomLevel')
+);
+
 editFileInput.addEventListener('change', handleEditFileAdded);
 editResetBtn.addEventListener('click', resetEditFile);
 rotateAllLeftBtn.addEventListener('click', () => rotateAll(-90));
 rotateAllRightBtn.addEventListener('click', () => rotateAll(90));
 recoverAllBtn.addEventListener('click', recoverAll);
 runEditBtn.addEventListener('click', runEdit);
-previewZoomOutBtn.addEventListener('click', () => zoomPreviewModal(-0.2));
-previewZoomInBtn.addEventListener('click', () => zoomPreviewModal(0.2));
-previewFitBtn.addEventListener('click', fitPreviewModalToWindow);
+previewZoomOutBtn.addEventListener('click', () => previewZoomMgr.zoomBy(-0.2));
+previewZoomInBtn.addEventListener('click', () => previewZoomMgr.zoomBy(0.2));
+previewFitBtn.addEventListener('click', () => previewZoomMgr.fitToWindow());
 previewCloseBtn.addEventListener('click', closePreviewModal);
 previewRotateLeftBtn.addEventListener('click', () => rotatePreviewPage(-90));
 previewRotateRightBtn.addEventListener('click', () => rotatePreviewPage(90));
 previewModalDelBtn.addEventListener('click', toggleDeletePreviewPage);
-
-document.addEventListener('DOMContentLoaded', () => {
-    const wrap = document.getElementById('previewModalCanvasWrap');
-    if (wrap) {
-        wrap.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            const delta = e.deltaY < 0 ? 0.1 : -0.1;
-            zoomPreviewModal(delta);
-        });
-        wrap.addEventListener('mousedown', (e) => {
-            isPreviewPanning = true;
-            pStartX = e.clientX - previewPanX;
-            pStartY = e.clientY - previewPanY;
-            wrap.style.cursor = 'grabbing';
-        });
-        wrap.addEventListener('mousemove', (e) => {
-            if (!isPreviewPanning) return;
-            previewPanX = e.clientX - pStartX;
-            previewPanY = e.clientY - pStartY;
-            applyPreviewTransform();
-        });
-        wrap.addEventListener('mouseup', () => {
-            isPreviewPanning = false;
-            wrap.style.cursor = 'grab';
-        });
-        wrap.addEventListener('mouseleave', () => {
-            isPreviewPanning = false;
-            wrap.style.cursor = 'grab';
-        });
-    }
-});
-
-function zoomPreviewModal(delta) {
-    previewZoom = Math.max(0.1, Math.min(previewZoom + delta, 5));
-    applyPreviewTransform();
-}
-
-function fitPreviewModalToWindow() {
-    const wrap = document.getElementById('previewModalCanvasWrap');
-    const canvas = document.getElementById('previewModalCanvas');
-    if (canvas.width && canvas.height) {
-        const scaleX = (wrap.clientWidth - 40) / canvas.width;
-        const scaleY = (wrap.clientHeight - 40) / canvas.height;
-        previewZoom = Math.max(0.1, Math.min(scaleX, scaleY, 1));
-    } else {
-        previewZoom = 1;
-    }
-    previewPanX = 0;
-    previewPanY = 0;
-    applyPreviewTransform();
-}
-
-function applyPreviewTransform() {
-    const container = document.getElementById('previewModalZoomContainer');
-    container.style.transform = `translate(${previewPanX}px, ${previewPanY}px) scale(${previewZoom})`;
-    document.getElementById('previewModalZoomLevel').innerText =
-        Math.round(previewZoom * 100) + '%';
-}
 
 async function openPreviewModal(idx) {
     currentPreviewIdx = idx;
@@ -117,7 +60,7 @@ async function openPreviewModal(idx) {
     updatePreviewModalState();
     document.getElementById('previewModal').style.display = 'flex';
     previewModalFocus.open();
-    setTimeout(() => fitPreviewModalToWindow(), 10);
+    setTimeout(() => previewZoomMgr.fitToWindow(), 10);
 }
 
 function updatePreviewModalState() {
@@ -166,7 +109,10 @@ function handleEditFileAdded(event) {
 
 function resetEditFile() {
     editFileObj = null;
-    pdfjsDoc = null;
+    if (pdfjsDoc) {
+        pdfjsDoc.destroy();
+        pdfjsDoc = null;
+    }
     document.getElementById('editDropZone').style.display = 'block';
     document.getElementById('fileInfoArea').style.display = 'none';
     document.getElementById('globalToolbar').style.display = 'none';
@@ -287,7 +233,10 @@ async function loadEditFile(file) {
         btn.disabled = false;
     } catch (e) {
         console.error(e);
-        dropLabel.innerHTML = '❌ 读取失败，可能是加密文件。点击重试';
+        const hint = isPasswordError(e)
+            ? '❌ 该 PDF 可能受密码保护，请先解密再试。'
+            : '❌ 读取失败，可能是加密文件。点击重试';
+        dropLabel.innerHTML = hint;
         editFileObj = null;
         btn.disabled = true;
     }

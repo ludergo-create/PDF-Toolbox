@@ -40,6 +40,8 @@ module.exports = [
                 isPngFile: 'readonly',
                 triggerDownload: 'readonly',
                 createModalFocusManager: 'readonly',
+                createZoomPanManager: 'readonly',
+                isPasswordError: 'readonly',
                 safeStorageGet: 'readonly',
                 safeStorageSet: 'readonly',
                 bindDropZone: 'readonly',

@@ -27,7 +27,10 @@ function handlePdfFileAdded(event) {
 
 function resetPdfFile() {
     pdfFileObj = null;
-    cachedPdfDoc = null;
+    if (cachedPdfDoc) {
+        cachedPdfDoc.destroy();
+        cachedPdfDoc = null;
+    }
     document.getElementById('pdfDropZone').style.display = 'block';
     document.getElementById('fileInfoArea').style.display = 'none';
     document.getElementById('pdfStatusText').innerText = '未加载文件';
@@ -62,8 +65,12 @@ async function loadPdfFile(file) {
 
         status.innerText = '文件已就绪，请配置转换参数';
         btn.disabled = false;
-    } catch {
-        dropLabel.innerHTML = '❌ 读取失败，可能是加密文件。点击重试';
+    } catch (e) {
+        console.error(e);
+        const hint = isPasswordError(e)
+            ? '❌ 该 PDF 可能受密码保护，请先解密再试。'
+            : '❌ 读取失败，可能是加密文件。点击重试';
+        dropLabel.innerHTML = hint;
         pdfFileObj = null;
         cachedPdfDoc = null;
         btn.disabled = true;

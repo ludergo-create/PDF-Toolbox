@@ -108,7 +108,8 @@ async function loadSplitFile(file) {
 
         status.innerText = '文件已就绪，请选择拆分模式';
         btn.disabled = false;
-    } catch {
+    } catch (e) {
+        console.error(e);
         dropLabel.innerHTML = '❌ 读取失败，可能是加密文件。点击重试';
         splitFileObj = null;
         btn.disabled = true;

@@ -122,7 +122,9 @@ async function runMerge() {
         status.style.color = 'var(--success)';
     } catch (e) {
         console.error(e);
-        status.innerText = '❌ 合并失败，可能由于加密或格式不受支持。';
+        status.innerText = isPasswordError(e)
+            ? '❌ 合并失败：某个 PDF 可能受密码保护，请先解密再试。'
+            : '❌ 合并失败，可能由于加密或格式不受支持。';
         status.style.color = 'var(--danger)';
     } finally {
         btn.disabled = false;

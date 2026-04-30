@@ -6,11 +6,6 @@ let pdfjsDoc = null;
 let customWms = {};
 let currentModalIdx = -1;
 
-let modalZoom = 1;
-let modalPanX = 0;
-let modalPanY = 0;
-let isModalPanning = false;
-let mStartX, mStartY;
 const wmFileInput = document.getElementById('wmFileInput');
 const wmResetBtn = document.getElementById('wmResetBtn');
 const runWmBtn = document.getElementById('runWmBtn');
@@ -22,12 +17,18 @@ const modalCancelBtn = document.getElementById('modalCancelBtn');
 const modalSaveCustomBtn = document.getElementById('modalSaveCustomBtn');
 const wmModalFocus = createModalFocusManager(document.getElementById('wmModal'), closeModal);
 
+const wmZoomMgr = createZoomPanManager(
+    document.getElementById('modalCanvasWrap'),
+    document.getElementById('modalZoomContainer'),
+    document.getElementById('modalZoomLevel')
+);
+
 wmFileInput.addEventListener('change', handleWmFileAdded);
 wmResetBtn.addEventListener('click', resetWmFile);
 runWmBtn.addEventListener('click', runWatermark);
-wmModalZoomOutBtn.addEventListener('click', () => zoomModal(-0.2));
-wmModalZoomInBtn.addEventListener('click', () => zoomModal(0.2));
-wmModalFitBtn.addEventListener('click', fitModalToWindow);
+wmModalZoomOutBtn.addEventListener('click', () => wmZoomMgr.zoomBy(-0.2));
+wmModalZoomInBtn.addEventListener('click', () => wmZoomMgr.zoomBy(0.2));
+wmModalFitBtn.addEventListener('click', () => wmZoomMgr.fitToWindow());
 modalClearCustomBtn.addEventListener('click', clearModalCustom);
 modalCancelBtn.addEventListener('click', closeModal);
 modalSaveCustomBtn.addEventListener('click', saveModalCustom);
@@ -71,65 +72,12 @@ modalSaveCustomBtn.addEventListener('click', saveModalCustom);
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    const wrap = document.getElementById('modalCanvasWrap');
-    if (wrap) {
-        wrap.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            const delta = e.deltaY < 0 ? 0.1 : -0.1;
-            zoomModal(delta);
-        });
-        wrap.addEventListener('mousedown', (e) => {
-            isModalPanning = true;
-            mStartX = e.clientX - modalPanX;
-            mStartY = e.clientY - modalPanY;
-            wrap.style.cursor = 'grabbing';
-        });
-        wrap.addEventListener('mousemove', (e) => {
-            if (!isModalPanning) return;
-            modalPanX = e.clientX - mStartX;
-            modalPanY = e.clientY - mStartY;
-            applyModalTransform();
-        });
-        wrap.addEventListener('mouseup', () => {
-            isModalPanning = false;
-            wrap.style.cursor = 'grab';
-        });
-        wrap.addEventListener('mouseleave', () => {
-            isModalPanning = false;
-            wrap.style.cursor = 'grab';
-        });
-    }
+    // wmZoomMgr 事件已绑定
 });
-
-function zoomModal(delta) {
-    modalZoom = Math.max(0.1, Math.min(modalZoom + delta, 5));
-    applyModalTransform();
-}
-
-function fitModalToWindow() {
-    const wrap = document.getElementById('modalCanvasWrap');
-    const canvas = document.getElementById('modalCanvas');
-    if (canvas.width && canvas.height) {
-        const scaleX = (wrap.clientWidth - 40) / canvas.width;
-        const scaleY = (wrap.clientHeight - 40) / canvas.height;
-        modalZoom = Math.max(0.1, Math.min(scaleX, scaleY, 1));
-    } else {
-        modalZoom = 1;
-    }
-    modalPanX = 0;
-    modalPanY = 0;
-    applyModalTransform();
-}
-
-function applyModalTransform() {
-    const container = document.getElementById('modalZoomContainer');
-    container.style.transform = `translate(${modalPanX}px, ${modalPanY}px) scale(${modalZoom})`;
-    document.getElementById('modalZoomLevel').innerText = Math.round(modalZoom * 100) + '%';
-}
 
 function getGlobalConfig() {
     return {
-        text: document.getElementById('globalWmText').value || ' ',
+        text: document.getElementById('globalWmText').value || '',
         color: document.getElementById('globalWmColor').value,
         mode: document.getElementById('globalWmMode').value,
         flip: document.getElementById('globalWmFlip').value,
@@ -143,7 +91,7 @@ function getGlobalConfig() {
 
 function getModalConfig() {
     return {
-        text: document.getElementById('modalWmText').value || ' ',
+        text: document.getElementById('modalWmText').value || '',
         color: document.getElementById('modalWmColor').value,
         mode: document.getElementById('modalWmMode').value,
         flip: document.getElementById('modalWmFlip').value,
@@ -252,7 +200,10 @@ function handleWmFileAdded(event) {
 
 function resetWmFile() {
     wmFileObj = null;
-    pdfjsDoc = null;
+    if (pdfjsDoc) {
+        pdfjsDoc.destroy();
+        pdfjsDoc = null;
+    }
     customWms = {};
     document.getElementById('wmDropZone').style.display = 'block';
     document.getElementById('fileInfoArea').style.display = 'none';
@@ -345,7 +296,10 @@ async function loadWmFile(file) {
         btn.disabled = false;
     } catch (e) {
         console.error(e);
-        dropLabel.innerHTML = '❌ 读取失败，可能是加密文件。点击重试';
+        const hint = isPasswordError(e)
+            ? '❌ 该 PDF 可能受密码保护，请先解密再试。'
+            : '❌ 读取失败，可能是加密文件。点击重试';
+        dropLabel.innerHTML = hint;
         wmFileObj = null;
         btn.disabled = true;
     }
@@ -404,7 +358,7 @@ async function openModal(idx) {
     updateModalPreview();
     document.getElementById('wmModal').style.display = 'flex';
     wmModalFocus.open();
-    setTimeout(() => fitModalToWindow(), 10);
+    setTimeout(() => wmZoomMgr.fitToWindow(), 10);
 }
 
 function updateModalPreview() {

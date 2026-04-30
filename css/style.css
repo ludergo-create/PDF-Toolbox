@@ -1342,7 +1342,7 @@ input[type='number'] {
     #imgCount {
         width: 100%;
         flex-basis: 100%;
-        text-align: left !important;
+        text-align: left;
         margin-top: 4px;
     }
 
@@ -1561,25 +1561,25 @@ input[type='number'] {
     }
 
     #previewModal .modal-content {
-        align-items: stretch !important;
-        max-height: calc(100dvh - 20px) !important;
+        align-items: stretch;
+        max-height: calc(100dvh - 20px);
     }
 
     #previewModal .modal-content > div:first-child {
         flex-wrap: wrap;
         gap: 10px;
-        margin-bottom: 0 !important;
+        margin-bottom: 0;
     }
 
     #previewModal .modal-content > div:first-child > div {
         width: 100%;
         justify-content: space-between;
-        gap: 8px !important;
+        gap: 8px;
         flex-wrap: wrap;
     }
 
     #previewModalCanvasWrap {
-        height: 55dvh !important;
+        height: 55dvh;
         min-height: 300px;
     }
 
@@ -1694,7 +1694,7 @@ input[type='number'] {
 
     #previewModalCanvasWrap {
         min-height: 260px;
-        height: 50dvh !important;
+        height: 50dvh;
     }
 }
 
